@@ -1,12 +1,12 @@
-import { Button, Container, Nav, Navbar } from "react-bootstrap";
+import {Container, Nav, Navbar} from "react-bootstrap";
 import "../css/AppNavbar.css";
 
 function AppNavbar() {
   return (
     <>
-      <Navbar className="navCSS" expand="lg">
+      <Navbar expand="lg" className="navCSS" sticky="top">
         <Container>
-          <Navbar.Brand>
+          <Navbar.Brand href="#home">
             <img
               alt=""
               src="../src/assets/logo.png"
@@ -15,14 +15,25 @@ function AppNavbar() {
               className="d-inline-block align-top"
             />
             RestaurAPP
+            <img
+              alt=""
+              src="../src/assets/logo.png"
+              width="30"
+              height="30"
+              className="d-inline-block align-top"
+            />
           </Navbar.Brand>
-          <Navbar.Toggle aria-controls="main-nav" />
-          <Navbar.Collapse id="main-nav" />
-          <Nav>
-            <Nav.Link>
-              <Button variant="link">Home</Button>
-            </Nav.Link>
-          </Nav>
+          <Navbar.Toggle aria-controls="basic-navbar-nav" />
+          <Navbar.Collapse id="basic-navbar-nav">
+            <Nav className="me-auto">
+              <Nav.Link href="#home">Home</Nav.Link>
+              <Nav.Link href="#conceptos">Conceptos</Nav.Link>
+            </Nav>
+            <Nav>
+              <Nav.Link href="#registrarse">Registrarse</Nav.Link>
+              <Nav.Link href="#iniciarsesion">Iniciar sesión</Nav.Link>
+            </Nav>
+          </Navbar.Collapse>
         </Container>
       </Navbar>
     </>
