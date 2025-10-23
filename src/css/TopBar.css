@@ -1,0 +1,14 @@
+.nav-yellow {
+  background: #ffb300;
+  border-top: 1px solid #6f4c00;
+  border-bottom: 1px solid #6f4c00;
+}
+
+.brand-center {
+  font-size: 1.25rem;
+  color: #1a1a1a;
+  text-decoration: none;
+}
+.brand-center:hover {
+  color: #111;
+}
