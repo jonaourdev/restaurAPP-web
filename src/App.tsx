@@ -1,9 +1,14 @@
-import Home from "./pages/Home";
+import {Route, Routes} from "react-router-dom";
+import LandingPage from "./pages/LandingPage";
+import GuestPage from "./pages/GuestPage";
 
 function App() {
   return (
     <>
-      <Home></Home>
+      <LandingPage></LandingPage>
+      <Routes>
+        <Route path="/guestPage" element={<GuestPage></GuestPage>}></Route>
+      </Routes>
     </>
   );
 }
