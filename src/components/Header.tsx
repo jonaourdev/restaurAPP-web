@@ -17,6 +17,7 @@ function Header() {
           </p>
           <div className="p-3 buttonStart">
             <Button
+              onClick={() => navigate("/loginPage")}
               className="btn-lg animate__animated animate__bounceIn animate__delay-2s"
               variant="dark"
             >
