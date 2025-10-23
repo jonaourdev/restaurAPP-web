@@ -1,11 +1,7 @@
-import AppFooter from "../components/AppFooter";
-import AppNavbar from "../components/AppNavbar";
-
 function GuestPage() {
   return (
     <>
-      <AppNavbar></AppNavbar>
-      <AppFooter></AppFooter>
+      <h1>WENA WENA WENA</h1>
     </>
   );
 }

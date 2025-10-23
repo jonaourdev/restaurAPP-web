@@ -1,8 +1,10 @@
 import {Button} from "react-bootstrap";
 import "../css/Header.css";
-import {Link} from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 
 function Header() {
+  const navigate = useNavigate();
+
   return (
     <>
       <div className="parallax">
@@ -20,14 +22,13 @@ function Header() {
             >
               Iniciar sesión
             </Button>
-            <Link to="/guestPage">
-              <Button
-                className="btn-lg animate__animated animate__bounceIn animate__delay-2s"
-                variant="dark"
-              >
-                Entrar como invitado
-              </Button>
-            </Link>
+            <Button
+              onClick={() => navigate("/guestPage")}
+              className="btn-lg animate__animated animate__bounceIn animate__delay-2s"
+              variant="dark"
+            >
+              Entrar como invitado
+            </Button>
           </div>
         </div>
       </div>
