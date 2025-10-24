@@ -30,7 +30,9 @@ function AppNavbar() {
               <Nav.Link as={Link} to={"/"}>
                 Home
               </Nav.Link>
-              <Nav.Link href="#conceptos">Conceptos</Nav.Link>
+              <Nav.Link as={Link} to={"/conceptPage"}>
+                Conceptos
+              </Nav.Link>
             </Nav>
             <Nav>
               <Nav.Link href="#registrarse">Registrarse</Nav.Link>
