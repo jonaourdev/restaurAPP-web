@@ -24,7 +24,7 @@ function Header() {
               Iniciar sesión
             </Button>
             <Button
-              onClick={() => navigate("/guestPage")}
+              onClick={() => navigate("/conceptPage")}
               className="btn-lg animate__animated animate__bounceIn animate__delay-2s"
               variant="dark"
             >
