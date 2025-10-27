@@ -1,5 +1,13 @@
 import { useEffect, useState } from "react";
-import { Container, Nav, Navbar, NavDropdown, Image } from "react-bootstrap";
+import {
+  Container,
+  Nav,
+  Navbar,
+  NavDropdown,
+  Image,
+  Form,
+  Button,
+} from "react-bootstrap";
 import "../css/AppNavbar.css";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -11,6 +19,7 @@ interface User {
 function AppNavbar() {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
+  const [busqueda, setBusqueda] = useState("");
 
   useEffect(() => {
     const storedUser = localStorage.getItem("currentUser"); // Leer el usuario con sesión iniciada
@@ -25,6 +34,14 @@ function AppNavbar() {
     // Usamos window.location.href para forzar una recarga completa de la página.
     // Esto asegura que el Navbar se actualice al estado "no logeado".
     window.location.href = "/";
+  };
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!busqueda.trim()) return;
+    alert(`Buscando: ${busqueda}`);
+    // Aquí puedes redirigir a una página de resultados de búsqueda
+    // navigate(`/search?q=${busqueda}`);
   };
 
   return (
@@ -57,6 +74,22 @@ function AppNavbar() {
               <Nav.Link as={Link} to={"/conceptPage"}>
                 Conceptos
               </Nav.Link>
+            </Nav>
+            <Form className="d-flex" onSubmit={handleSubmit}>
+              <Form.Control
+                type="search"
+                placeholder="Buscar conceptos..."
+                className="me-2"
+                aria-label="Buscar"
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+              />
+              <Button type="submit" variant="dark">
+                Buscar
+              </Button>
+            </Form>
+            <Nav className="ms-auto">
+              {/* Separador visual si es necesario */}
             </Nav>
             {user ? (
               // Vista para usuario logeado
