@@ -5,7 +5,7 @@ function AppFooter() {
   return (
     <>
       <footer className=" py-3 mt-auto footerCSS">
-        <Container className="text-center small">
+        <Container className="text-center small text-dark">
           © 2025 - Excelsior - Todos los derechos reservados
         </Container>
       </footer>
