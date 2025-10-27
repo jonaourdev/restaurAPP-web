@@ -30,7 +30,7 @@ export default function FamilyDetail() {
 
   return (
     <Container className="py-5">
-      <Card className="shadow-lg">
+      <Card className="article-card d-flex flex-column shadow-lg">
         <Card.Body>
           <h1 className="text-center mb-4">{family.name}</h1>
           
@@ -60,7 +60,7 @@ export default function FamilyDetail() {
               <div className="row g-4">
                 {family.subConcepto.map((sub) => (
                   <div key={sub.conceptId} className="col-md-6">
-                    <Card className="h-100">
+                    <Card className="article-card">
                       <Card.Body>
                         <Card.Title>{sub.name}</Card.Title>
                         <Card.Text>{sub.description}</Card.Text>
