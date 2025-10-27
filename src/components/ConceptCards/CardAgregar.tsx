@@ -4,9 +4,8 @@ import { Link } from "react-router-dom";
 
 export default function AddNewCard() {
   return (
-    <Card
-      as={Link}
-      to="/add"
+    <Link
+      to="/addChoicePage"
       className="article-card d-flex flex-column shadow-lg text-decoration-none text-reset"
       style={{ cursor: "pointer" }}
     >
@@ -19,6 +18,6 @@ export default function AddNewCard() {
           <span className="btn btn-outline-primary">Crear nuevo</span>
         </div>
       </Card.Body>
-    </Card>
+    </Link>
   );
 }

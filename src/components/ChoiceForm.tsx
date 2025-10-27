@@ -1,7 +1,7 @@
 import { Container, Row, Col, Card } from "react-bootstrap";
 import { Link } from "react-router-dom";
 
-export default function AddChoicePage() {
+export default function AddChoice() {
   return (
     <Container className="py-5">
       <h1 className="text-center mb-4">Crear nuevo</h1>

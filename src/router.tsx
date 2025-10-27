@@ -7,8 +7,13 @@ import ConceptPage from "./pages/ConceptPage";
 import FormativeConceptPage from "./pages/FormativeConceptPage";
 import TechnicalConceptPage from "./pages/TechnicalConceptPage";
 import FamiliyDetailPage from "./pages/FamiliyDetailPage";
+import AddFormativePage from "./pages/AddFormativePage";
+import AddFamilyPage from "./pages/AddFamilyPage";
+import AddTechnicalPage from "./pages/AddTechnicalPage";
 import FormativeConceptDetail from "./components/FormativeConcepts/FormativeConceptDetail";
 import TechnicalConceptDetailPage from "./pages/TechnicalConceptDetailPage";
+import AddChoicePage from "./pages/AddChoicePage";
+
 
 export const routes = {
   landing: "/",
@@ -19,8 +24,12 @@ export const routes = {
   TechnicalConceptPage: "/TechnicalConceptPage",
   conceptDetail: "/concepto/:id",
   familyDetail: "/familia/:id",
-  addChoicePage: "/addChoicePage",
-    technicalConceptDetailPage: "/technical/concept/:id",
+  technicalConceptDetailPage: "/technical/concept/:id",
+  AddChoice: "/AddChoicePage",
+  addFormative: "/add/formative",
+  addFamily: "/add/family",
+  addTechnical: "/add/technical",
+
 } as const;
 
 const router = createBrowserRouter([
@@ -38,7 +47,10 @@ const router = createBrowserRouter([
       {path: routes.TechnicalConceptPage, element: <TechnicalConceptPage></TechnicalConceptPage>},
       {path: routes.conceptDetail, element: <FormativeConceptDetail></FormativeConceptDetail>},
       {path: routes.familyDetail, element: <FamiliyDetailPage></FamiliyDetailPage>},
-      {path: routes.addChoicePage, element: <ConceptPage></ConceptPage>},
+      {path: routes.AddChoice, element: <AddChoicePage></AddChoicePage>},
+      {path: routes.addFormative, element: <AddFormativePage /> },
+      {path: routes.addFamily, element: <AddFamilyPage /> },
+      {path: routes.addTechnical, element: <AddTechnicalPage /> },
       {path: routes.technicalConceptDetailPage, element: <TechnicalConceptDetailPage></TechnicalConceptDetailPage>},
    
 
