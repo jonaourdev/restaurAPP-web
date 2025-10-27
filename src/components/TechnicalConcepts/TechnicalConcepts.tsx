@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Container, Card } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import AddNewCard from "../ConceptCards/CardAgregar";
-import "./TechnicalConcepts.css";
 import { dataHelper, type Family} from "../../utils/Helper";  
 
 export default function TechnicalConcepts() {
