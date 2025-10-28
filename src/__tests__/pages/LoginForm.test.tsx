@@ -8,9 +8,9 @@ import {
   expect,
   vi,
 } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import {render, screen, waitFor} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
+import {MemoryRouter} from "react-router-dom";
 import LoginForm from "../../components/LoginForm";
 
 const renderWithRouter = (ui: React.ReactElement) =>
@@ -24,12 +24,12 @@ let alertMock: ReturnType<typeof vi.fn>;
 beforeAll(() => {
   Object.defineProperty(window, "location", {
     writable: true,
-    value: { ...originalLocation, href: "" },
+    value: {...originalLocation, href: ""},
   });
 });
 
 afterAll(() => {
-  Object.defineProperty(window, "location", { value: originalLocation });
+  Object.defineProperty(window, "location", {value: originalLocation});
   window.alert = originalAlert;
 });
 
@@ -50,21 +50,18 @@ describe("<LoginForm />", () => {
     renderWithRouter(<LoginForm />);
 
     await user.type(screen.getByLabelText(/correo/i), "foo@bar.com");
-    await user.click(screen.getByRole("button", { name: /ingresar/i }));
+    await user.click(screen.getByRole("button", {name: /ingresar/i}));
 
-    // espera a que caiga el alert del setTimeout(1500)
     await waitFor(
       () =>
         expect(alertMock).toHaveBeenCalledWith(
           "Por favor, ingresa tu email y contraseña."
         ),
-      { timeout: 2000 }
+      {timeout: 2000}
     );
 
     expect((window.location as any).href).not.toContain("/conceptPage");
-    expect(
-      screen.getByRole("button", { name: /ingresar/i })
-    ).not.toBeDisabled();
+    expect(screen.getByRole("button", {name: /ingresar/i})).not.toBeDisabled();
   });
 
   it("muestra alerta si el usuario no existe y re-habilita el botón", async () => {
@@ -73,7 +70,7 @@ describe("<LoginForm />", () => {
 
     await user.type(screen.getByLabelText(/correo/i), "no@existe.com");
     await user.type(screen.getByLabelText(/contraseña/i), "12345678");
-    await user.click(screen.getByRole("button", { name: /ingresar/i }));
+    await user.click(screen.getByRole("button", {name: /ingresar/i}));
 
     // durante la espera, el botón cambia a “Ingresando…” y queda deshabilitado
     const loadingBtn = await screen.findByRole("button", {
@@ -86,13 +83,11 @@ describe("<LoginForm />", () => {
         expect(alertMock).toHaveBeenCalledWith(
           "Usuario no encontrado. Por favor, regístrate primero."
         ),
-      { timeout: 2000 }
+      {timeout: 2000}
     );
 
     expect((window.location as any).href).not.toContain("/conceptPage");
-    expect(
-      screen.getByRole("button", { name: /ingresar/i })
-    ).not.toBeDisabled();
+    expect(screen.getByRole("button", {name: /ingresar/i})).not.toBeDisabled();
   });
 
   it("inicia sesión con credenciales válidas, guarda currentUser y redirige", async () => {
@@ -100,7 +95,7 @@ describe("<LoginForm />", () => {
     localStorage.setItem(
       "users",
       JSON.stringify([
-        { fullName: "Jane Roe", email: "jane@roe.com", password: "abc12345" },
+        {fullName: "Jane Roe", email: "jane@roe.com", password: "abc12345"},
       ])
     );
 
@@ -108,7 +103,7 @@ describe("<LoginForm />", () => {
 
     await user.type(screen.getByLabelText(/correo/i), "jane@roe.com");
     await user.type(screen.getByLabelText(/contraseña/i), "abc12345");
-    await user.click(screen.getByRole("button", { name: /ingresar/i }));
+    await user.click(screen.getByRole("button", {name: /ingresar/i}));
 
     // espera a que se setee currentUser y se cambie href
     await waitFor(
@@ -120,7 +115,7 @@ describe("<LoginForm />", () => {
         });
         expect((window.location as any).href).toBe("/conceptPage");
       },
-      { timeout: 2000 }
+      {timeout: 2000}
     );
   });
 });

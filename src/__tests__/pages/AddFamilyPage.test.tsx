@@ -1,10 +1,7 @@
-// src/__tests__/pages/AddFamilyPage.test.tsx
 import {describe, it, beforeEach, expect, vi} from "vitest";
 import {render, screen} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-/* ------------------------ Mocks de módulos ------------------------ */
-// Mock de react-router-dom para capturar useNavigate (y reexportar lo demás)
 // Mock de useNavigate
 const navigateMock = vi.fn();
 vi.mock("react-router-dom", async () => {
@@ -14,7 +11,7 @@ vi.mock("react-router-dom", async () => {
   return {...actual, useNavigate: () => navigateMock};
 });
 
-// 👇 Declarar el mock en un bloque hoisted
+//Declarar el mock en un bloque hoisted
 const {addFamilyMock} = vi.hoisted(() => ({
   addFamilyMock: vi.fn(),
 }));
@@ -26,24 +23,20 @@ vi.mock("../../utils/Helper", () => ({
   },
 }));
 
-/* ------------------------ Imports del SUT ------------------------ */
-// IMPORTA después de definir los mocks ↑
 import {MemoryRouter} from "react-router-dom";
 import {routes} from "../../router";
 import AddFamilyPage from "../../pages/AddFamilyPage";
 
-/* ------------------------ Helper de render ------------------------ */
 const renderWithRouter = (ui: React.ReactElement) =>
   render(<MemoryRouter>{ui}</MemoryRouter>);
 
-/* ------------------------ Reset entre tests ------------------------ */
 beforeEach(() => {
   vi.clearAllMocks();
   navigateMock.mockClear();
   addFamilyMock.mockClear();
 });
 
-/* ============================ TESTS ============================ */
+//TESTS
 describe("<AddFamilyPage />", () => {
   it("renderiza inputs y botones básicos", () => {
     renderWithRouter(<AddFamilyPage />);
@@ -68,7 +61,7 @@ describe("<AddFamilyPage />", () => {
     const user = userEvent.setup();
     renderWithRouter(<AddFamilyPage />);
 
-    // No llenamos "Nombre" (o podrías hacer: await user.type(..., "   "))
+    // No llenamos "Nombre"
     await user.click(screen.getByRole("button", {name: /guardar/i}));
 
     expect(addFamilyMock).not.toHaveBeenCalled();

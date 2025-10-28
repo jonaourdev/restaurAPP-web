@@ -1,6 +1,6 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { BrowserRouter } from "react-router-dom";
+import {render, screen, fireEvent, waitFor} from "@testing-library/react";
+import {describe, it, expect, vi, beforeEach, afterEach} from "vitest";
+import {BrowserRouter} from "react-router-dom";
 import RegisterForm from "../../components/RegisterForm";
 
 // Hacemos un mock del hook useNavigate de react-router-dom
@@ -41,7 +41,7 @@ describe("RegisterForm", () => {
 
   it("debería renderizar el formulario de registro correctamente", () => {
     expect(
-      screen.getByRole("heading", { name: /Crear cuenta/i })
+      screen.getByRole("heading", {name: /Crear cuenta/i})
     ).toBeInTheDocument();
     expect(
       screen.getByPlaceholderText(/Nombre y apellido/i)
@@ -56,12 +56,12 @@ describe("RegisterForm", () => {
       screen.getByPlaceholderText(/Repite tu contraseña/i)
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /Crear cuenta/i })
+      screen.getByRole("button", {name: /Crear cuenta/i})
     ).toBeInTheDocument();
   });
 
   it("debería mostrar una alerta si los campos están vacíos al enviar", async () => {
-    fireEvent.click(screen.getByRole("button", { name: /Crear cuenta/i }));
+    fireEvent.click(screen.getByRole("button", {name: /Crear cuenta/i}));
 
     await waitFor(
       () => {
@@ -69,49 +69,49 @@ describe("RegisterForm", () => {
           "Por favor completa todos los campos."
         );
       },
-      { timeout: 2000 }
+      {timeout: 2000}
     );
   });
 
   it("debería mostrar una alerta si las contraseñas no coinciden", async () => {
     fireEvent.change(screen.getByPlaceholderText(/Nombre y apellido/i), {
-      target: { value: "Test User" },
+      target: {value: "Test User"},
     });
     fireEvent.change(screen.getByPlaceholderText(/tucorreo@dominio.com/i), {
-      target: { value: "test@test.com" },
+      target: {value: "test@test.com"},
     });
     fireEvent.change(screen.getByPlaceholderText("Mínimo 8 caracteres"), {
-      target: { value: "password123" },
+      target: {value: "password123"},
     });
     fireEvent.change(screen.getByPlaceholderText(/Repite tu contraseña/i), {
-      target: { value: "password456" },
+      target: {value: "password456"},
     });
 
-    fireEvent.click(screen.getByRole("button", { name: /Crear cuenta/i }));
+    fireEvent.click(screen.getByRole("button", {name: /Crear cuenta/i}));
 
     await waitFor(
       () => {
         expect(alertMock).toHaveBeenCalledWith("Las contraseñas no coinciden.");
       },
-      { timeout: 2000 }
+      {timeout: 2000}
     );
   });
 
   it("debería mostrar una alerta si la contraseña es muy corta", async () => {
     fireEvent.change(screen.getByPlaceholderText(/Nombre y apellido/i), {
-      target: { value: "Test User" },
+      target: {value: "Test User"},
     });
     fireEvent.change(screen.getByPlaceholderText(/tucorreo@dominio.com/i), {
-      target: { value: "test@test.com" },
+      target: {value: "test@test.com"},
     });
     fireEvent.change(screen.getByPlaceholderText("Mínimo 8 caracteres"), {
-      target: { value: "123" },
+      target: {value: "123"},
     });
     fireEvent.change(screen.getByPlaceholderText(/Repite tu contraseña/i), {
-      target: { value: "123" },
+      target: {value: "123"},
     });
 
-    fireEvent.click(screen.getByRole("button", { name: /Crear cuenta/i }));
+    fireEvent.click(screen.getByRole("button", {name: /Crear cuenta/i}));
 
     await waitFor(
       () => {
@@ -119,7 +119,7 @@ describe("RegisterForm", () => {
           "La contraseña debe tener al menos 8 caracteres."
         );
       },
-      { timeout: 2000 }
+      {timeout: 2000}
     );
   });
 
@@ -137,19 +137,19 @@ describe("RegisterForm", () => {
     );
 
     fireEvent.change(screen.getByPlaceholderText(/Nombre y apellido/i), {
-      target: { value: "Test User" },
+      target: {value: "Test User"},
     });
     fireEvent.change(screen.getByPlaceholderText(/tucorreo@dominio.com/i), {
-      target: { value: "test@test.com" },
+      target: {value: "test@test.com"},
     });
     fireEvent.change(screen.getByPlaceholderText("Mínimo 8 caracteres"), {
-      target: { value: "password123" },
+      target: {value: "password123"},
     });
     fireEvent.change(screen.getByPlaceholderText(/Repite tu contraseña/i), {
-      target: { value: "password123" },
+      target: {value: "password123"},
     });
 
-    fireEvent.click(screen.getByRole("button", { name: /Crear cuenta/i }));
+    fireEvent.click(screen.getByRole("button", {name: /Crear cuenta/i}));
 
     await waitFor(
       () => {
@@ -157,7 +157,7 @@ describe("RegisterForm", () => {
           "Este correo electrónico ya está registrado."
         );
       },
-      { timeout: 2000 }
+      {timeout: 2000}
     );
   });
 
@@ -172,13 +172,13 @@ describe("RegisterForm", () => {
     const passwordInput = screen.getByPlaceholderText("Mínimo 8 caracteres");
     const confirmPasswordInput =
       screen.getByPlaceholderText(/Repite tu contraseña/i);
-    const submitButton = screen.getByRole("button", { name: /Crear cuenta/i });
+    const submitButton = screen.getByRole("button", {name: /Crear cuenta/i});
 
-    fireEvent.change(fullNameInput, { target: { value: "Nuevo Usuario" } });
-    fireEvent.change(emailInput, { target: { value: "nuevo@usuario.com" } });
-    fireEvent.change(passwordInput, { target: { value: "passwordValido123" } });
+    fireEvent.change(fullNameInput, {target: {value: "Nuevo Usuario"}});
+    fireEvent.change(emailInput, {target: {value: "nuevo@usuario.com"}});
+    fireEvent.change(passwordInput, {target: {value: "passwordValido123"}});
     fireEvent.change(confirmPasswordInput, {
-      target: { value: "passwordValido123" },
+      target: {value: "passwordValido123"},
     });
 
     // Enviamos el formulario
@@ -213,7 +213,7 @@ describe("RegisterForm", () => {
         // Verificamos que se redirija a la página de login
         expect(mockedNavigate).toHaveBeenCalledWith("/loginPage");
       },
-      { timeout: 2000 }
-    ); // Aumentamos el timeout para dar margen al setTimeout del componente
+      {timeout: 2000}
+    );
   });
 });
