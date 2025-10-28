@@ -28,7 +28,7 @@ export const routes = {
   AddChoice: "/AddChoicePage",
   addFormative: "/add/formative",
   addFamily: "/add/family",
-  addTechnical: "/add/technical",
+  addTechnical: "/add/technical",   
 
 } as const;
 
