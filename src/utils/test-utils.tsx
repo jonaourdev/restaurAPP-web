@@ -10,7 +10,6 @@ export function renderWithRoute(
     <MemoryRouter initialEntries={[route]}>
       <Routes>
         <Route path={path} element={ui} />
-        {/* Rutas mínimas de destino para evitar “no route matches” */}
         <Route path="/home" element={<div>HOME</div>} />
         <Route path="/family/:id" element={<div>FAMILY OK</div>} />
       </Routes>
