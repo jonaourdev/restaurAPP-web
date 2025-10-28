@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Container, Card } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import AddNewCard from "../ConceptCards/CardAgregar";
-import "../../css/ConceptCards/CardTecnica.css";
+import "../../css/ConceptCards/ItemConcept.css";
 import { dataHelper, type Family } from "../../utils/Helper";
 
 export default function TechnicalConcepts() {
@@ -18,7 +18,7 @@ export default function TechnicalConcepts() {
 
       <div className="technical-grid">
         {families.map((family) => (
-          <Card key={family.idFamilies} className="article-card d-flex flex-column shadow-lg">
+          <Card key={family.idFamilies} className="article-card-small d-flex flex-column shadow-lg">
             <Card.Body className="d-flex align-items-center">
               <div className="card-left flex-grow-1">
                 <h5 className="mb-3">Familia: {family.name}</h5>

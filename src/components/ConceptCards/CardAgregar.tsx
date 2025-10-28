@@ -1,12 +1,14 @@
 import { Card } from "react-bootstrap";
 import { Link } from "react-router-dom";
+import "../../css/ConceptCards/ItemConcept.css";
+
 
 
 export default function AddNewCard() {
   return (
     <Link
       to="/addChoicePage"
-      className="article-card d-flex flex-column shadow-lg text-decoration-none text-reset"
+      className="article-card-small d-flex flex-column shadow-lg text-decoration-none text-reset"
       style={{ cursor: "pointer" }}
     >
       <Card.Body className="pb-4 d-flex flex-column align-items-center justify-content-center">
@@ -14,9 +16,7 @@ export default function AddNewCard() {
         <Card.Title as="h2" className="article-title mt-3">
           Agregar
         </Card.Title>
-        <div className="mt-3">
-          <span className="btn btn-outline-primary">Crear nuevo</span>
-        </div>
+        
       </Card.Body>
     </Link>
   );

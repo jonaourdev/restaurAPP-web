@@ -2,6 +2,8 @@ import { Container, Card } from "react-bootstrap";
 import { useParams, Link } from "react-router-dom";
 import { routes } from "../../router";
 import { dataHelper, type Formative } from "../../utils/Helper";
+import "../../css/ConceptCards/ItemConcept.css";
+
 
  
 export default function FormativeConceptDetail() {
@@ -37,7 +39,7 @@ export default function FormativeConceptDetail() {
 
   return (
     <Container className="py-5">
-      <Card className="mx-auto" style={{ maxWidth: 800 }}>
+      <Card className="article-card-small d-flex flex-column shadow-lg" style={{ maxWidth: 800 }}>
         <Card.Body>
           <h2>{concept.name}</h2>
           <p>{concept.description}</p>

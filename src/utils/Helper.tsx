@@ -47,48 +47,10 @@ function saveToStorage<T>(key: string, data: T[]) {
 }
 
 /* --- initial data --- */
-const initialFamilies: Family[] = [
-    {
-        idFamilies: 1,
-        name: "Columna",
-        descriptions: "Elemento estructural vertical",
-        componentItemn: "Base, Fuste, Capitel",
-        image: "/assets/column.png",
-        subConcepto: [
-            {
-                conceptId: 101,
-                familyId: 1,
-                name: "Columna Dórica",
-                description:
-                    "Se caracteriza por tener columnas estriadas sin base, capiteles sencillos y lisos",
-                image: "src\assets\dorica.png",
-            },
-        ],
-    },
-    {
-        idFamilies: 2,
-        name: "Arco",
-        descriptions: "Estructura curva que salva un vano",
-        componentItemn: "Clave, Dovelas, Imposta",
-        image: "/assets/arch.png",
-        subConcepto: [],
-    },
-];
+// Empty initial arrays so the app starts with no data (for demo/testing)
+const initialFamilies: Family[] = [];
 
-const initialFormatives: Formative[] = [
-    {
-        conceptId: 1,
-        name: "Patrimonio",
-        description:
-            "Bienes muebles e inmuebles, materiales e inmateriales de propiedad de particulares o de instituciones u organismos públicos o semipúblicos que tienen un valor excepcional desde el punto de vista de la historia, del arte, de la ciencia y de la cultura y por lo tanto sean dignos de ser considerados y conservados por la nación.",
-        image: "src\assets\columna.png",
-    },
-    {
-        conceptId: 2,
-        name: "Conservación",
-        description: "Conjunto de acciones preventivas y directas para resguardar el patrimonio para evitar o prevenir las alteraciones futuras de un bien determinado. \n Medidas adoptadas para que un bien determinado experimente el menor número de alteraciones durante el mayor tiempo posible.",
-    },
-];
+const initialFormatives: Formative[] = [];
 
 /* --- API --- */
 export const dataHelper = {

@@ -3,6 +3,9 @@ import { Container, Button } from "react-bootstrap";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { dataHelper, type SubConcept, type Family } from "../../utils/Helper";
 import { routes } from "../../router";
+import "../../css/ConceptCards/ItemConcept.css";
+
+
 
 export default function TechnicalConceptDetail() {
   const { id } = useParams<{ id?: string }>();
@@ -70,7 +73,7 @@ export default function TechnicalConceptDetail() {
 
   return (
     <Container className="detail-container">
-      <div className="article-card d-flex flex-column shadow-lg">
+      <div className="article-card-small d-flex flex-column shadow-lg">
         <div className="detail-header p-3">
           <h1>{subConcept.name}</h1>
           {family && (

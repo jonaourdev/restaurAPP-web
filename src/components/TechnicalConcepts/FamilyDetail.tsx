@@ -3,6 +3,8 @@ import { Container, Card } from "react-bootstrap";
 import { useParams, Link } from "react-router-dom";
 import { dataHelper, type Family } from "../../utils/Helper";
 import { routes } from "../../router";
+import "../../css/ConceptCards/ItemConcept.css";
+
 
 export default function FamilyDetail() {
   const { id } = useParams<{ id?: string }>();
@@ -30,7 +32,7 @@ export default function FamilyDetail() {
 
   return (
     <Container className="py-5">
-      <Card className="article-card d-flex flex-column shadow-lg">
+      <Card className="article-card-small d-flex flex-column shadow-lg">
         <Card.Body>
           <h1 className="text-center mb-4">{family.name}</h1>
           
@@ -56,11 +58,11 @@ export default function FamilyDetail() {
 
           {family.subConcepto && family.subConcepto.length > 0 && (
             <div className="mt-4">
-              <h3>Subconceptos</h3>
+              <h3>Conceptos Asociados</h3>
               <div className="row g-4">
                 {family.subConcepto.map((sub) => (
                   <div key={sub.conceptId} className="col-md-6">
-                    <Card className="article-card">
+                    <Card className="article-card-small">
                       <Card.Body>
                         <Card.Title>{sub.name}</Card.Title>
                         <Card.Text>{sub.description}</Card.Text>

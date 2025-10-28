@@ -3,6 +3,8 @@ import { Container, Card } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { dataHelper, type Formative } from "../../utils/Helper";
 import AddNewCard from "../ConceptCards/CardAgregar";
+import "../../css/ConceptCards/ItemConcept.css";
+
 
 export default function FormativeConcepts() {
   const [concepts, setConcepts] = useState<Formative[]>([]);
@@ -12,7 +14,7 @@ export default function FormativeConcepts() {
   }, []);
 
   return (
-    <Container className="py-5">
+    <Container className="article-card-small d-flex flex-column shadow-lg ">
       <h1 className="text-center mb-5">CONCEPTOS FORMATIVOS</h1>
 
       <div className="row g-4">
@@ -22,7 +24,7 @@ export default function FormativeConcepts() {
               to={`/concepto/${concept.conceptId}`}
               className="text-decoration-none"
             >
-              <Card className="h-100 shadow-sm hover-shadow">
+              <Card className="article-card-small d-flex flex-column shadow-lg mb-4">
                 <Card.Body>
                   <Card.Title className="text-center mb-3">{concept.name}</Card.Title>
                   <Card.Text className="text-muted">

@@ -8,8 +8,27 @@ export default function AddFamilyPage() {
   const [name, setName] = useState("");
   const [descriptions, setDescriptions] = useState("");
   const [componentItemn, setComponentItemn] = useState("");
-  const [image, setImage] = useState("");
+  const [image, setImage] = useState(""); // base64 o url
+  const [preview, setPreview] = useState<string>("");
   const navigate = useNavigate();
+
+  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (typeof reader.result === "string") {
+        setImage(reader.result);
+        setPreview(reader.result);
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function handleUrlChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setImage(e.target.value);
+    setPreview(e.target.value);
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -19,7 +38,7 @@ export default function AddFamilyPage() {
       name: name.trim(),
       descriptions: descriptions.trim() || undefined,
       componentItemn: componentItemn.trim() || undefined,
-      image: image.trim() || undefined,
+      image: image || undefined,
     });
 
     navigate(routes.TechnicalConceptPage);
@@ -58,15 +77,27 @@ export default function AddFamilyPage() {
           />
         </Form.Group>
 
-        <Form.Group className="mb-3" controlId="image">
-          <Form.Label>URL de imagen (opcional)</Form.Label>
+        <Form.Group className="mb-3" controlId="imageFile">
+          <Form.Label>Imagen (selecciona archivo o pega URL)</Form.Label>
+          <Form.Control
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+          />
+          <div className="my-2 text-center">o</div>
           <Form.Control
             type="text"
-            placeholder="/assets/column.png"
-            value={image}
-            onChange={(e) => setImage(e.target.value)}
+            placeholder="/assets/column.png o URL completa"
+            value={image.startsWith("data:") ? "" : image}
+            onChange={handleUrlChange}
           />
         </Form.Group>
+
+        {preview && (
+          <div className="mb-3 text-center">
+            <img src={preview} alt="Previsualización" style={{ maxWidth: 200, maxHeight: 200 }} />
+          </div>
+        )}
 
         <div className="d-flex gap-2">
           <Button variant="primary" type="submit">

@@ -7,8 +7,28 @@ import { routes } from "../../router";
 export default function AddFormativePage() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [image, setImage] = useState("");
+  const [image, setImage] = useState(""); // base64 o url
+  const [preview, setPreview] = useState<string>("");
   const navigate = useNavigate();
+
+  // Maneja selección de archivo y lo convierte a base64
+  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (typeof reader.result === "string") {
+        setImage(reader.result);
+        setPreview(reader.result);
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function handleUrlChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setImage(e.target.value);
+    setPreview(e.target.value);
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -17,7 +37,7 @@ export default function AddFormativePage() {
     dataHelper.addFormativeConcept({
       name: name.trim(),
       description: description.trim() || "",
-      image: image.trim() || undefined,
+      image: image || undefined,
     });
 
     navigate(routes.FormativeConceptPage);
@@ -47,15 +67,27 @@ export default function AddFormativePage() {
           />
         </Form.Group>
 
-        <Form.Group className="mb-3" controlId="image">
-          <Form.Label>URL de imagen (opcional)</Form.Label>
+        <Form.Group className="mb-3" controlId="imageFile">
+          <Form.Label>Imagen (selecciona archivo o pega URL)</Form.Label>
+          <Form.Control
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+          />
+          <div className="my-2 text-center">o</div>
           <Form.Control
             type="text"
-            placeholder="/assets/formative/example.png"
-            value={image}
-            onChange={(e) => setImage(e.target.value)}
+            placeholder="/assets/formative/example.png o URL completa"
+            value={image.startsWith("data:") ? "" : image}
+            onChange={handleUrlChange}
           />
         </Form.Group>
+
+        {preview && (
+          <div className="mb-3 text-center">
+            <img src={preview} alt="Previsualización" style={{ maxWidth: 200, maxHeight: 200 }} />
+          </div>
+        )}
 
         <div className="d-flex gap-2">
           <Button variant="primary" type="submit">
