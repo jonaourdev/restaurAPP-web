@@ -79,12 +79,13 @@ describe("<LoginForm />", () => {
     await user.type(screen.getByLabelText(/contraseña/i), "12345678");
     await user.click(screen.getByRole("button", {name: /ingresar/i}));
 
-    // Durante la espera debe mostrar el texto de loading y estar deshabilitado
+    // durante la espera
     expect(screen.getByRole("button", {name: /Ingresando/i})).toBeDisabled();
 
     vi.advanceTimersByTime(1500);
 
-    expect(alertSpy).toHaveBeenCalledWith(
+    // 👇 usa alertMock en vez de alertSpy
+    expect(alertMock).toHaveBeenCalledWith(
       "Usuario no encontrado. Por favor, regístrate primero."
     );
     expect((window.location as any).href).not.toContain("/conceptPage");
