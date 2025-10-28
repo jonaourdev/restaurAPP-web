@@ -8,24 +8,20 @@ import {
   expect,
   vi,
 } from "vitest";
-import {render, screen} from "@testing-library/react";
+import {render, screen, waitFor} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import {MemoryRouter} from "react-router-dom";
 import LoginForm from "../../components/LoginForm";
 
-// helper para Router
 const renderWithRouter = (ui: React.ReactElement) =>
   render(<MemoryRouter>{ui}</MemoryRouter>);
 
-// guardo original por si tu vitest no tiene `unstubAllGlobals`
 const originalLocation = window.location;
 const originalAlert = window.alert;
 
-// referencia al mock de alert
 let alertMock: ReturnType<typeof vi.fn>;
 
 beforeAll(() => {
-  // permitir escribir en href
   Object.defineProperty(window, "location", {
     writable: true,
     value: {...originalLocation, href: ""},
@@ -34,67 +30,67 @@ beforeAll(() => {
 
 afterAll(() => {
   Object.defineProperty(window, "location", {value: originalLocation});
-  window.alert = originalAlert; // por si acaso
+  window.alert = originalAlert;
 });
 
 beforeEach(() => {
-  vi.useFakeTimers();
   localStorage.clear();
-
-  // 👇 en vez de spyOn:
   alertMock = vi.fn();
-  vi.stubGlobal("alert", alertMock); // window.alert = mock
+  vi.stubGlobal("alert", alertMock);
   (window.location as any).href = "";
 });
 
 afterEach(() => {
-  vi.restoreAllMocks(); // limpia llamadas y spies
-  // si tu versión lo tiene, descomenta:
-  // vi.unstubAllGlobals();
-  vi.useRealTimers();
+  vi.restoreAllMocks();
 });
 
 describe("<LoginForm />", () => {
   it("muestra alerta si faltan datos y no navega", async () => {
-    const user = userEvent.setup({delay: null});
+    const user = userEvent.setup();
     renderWithRouter(<LoginForm />);
 
     await user.type(screen.getByLabelText(/correo/i), "foo@bar.com");
     await user.click(screen.getByRole("button", {name: /ingresar/i}));
 
-    vi.advanceTimersByTime(1500);
-
-    expect(alertMock).toHaveBeenCalledWith(
-      "Por favor, ingresa tu email y contraseña."
+    // espera a que caiga el alert del setTimeout(1500)
+    await waitFor(
+      () =>
+        expect(alertMock).toHaveBeenCalledWith(
+          "Por favor, ingresa tu email y contraseña."
+        ),
+      {timeout: 2000}
     );
+
     expect((window.location as any).href).not.toContain("/conceptPage");
     expect(screen.getByRole("button", {name: /ingresar/i})).not.toBeDisabled();
   });
 
   it("muestra alerta si el usuario no existe y re-habilita el botón", async () => {
-    const user = userEvent.setup({delay: null});
+    const user = userEvent.setup();
     renderWithRouter(<LoginForm />);
 
     await user.type(screen.getByLabelText(/correo/i), "no@existe.com");
     await user.type(screen.getByLabelText(/contraseña/i), "12345678");
     await user.click(screen.getByRole("button", {name: /ingresar/i}));
 
-    // durante la espera
-    expect(screen.getByRole("button", {name: /Ingresando/i})).toBeDisabled();
+    // durante la espera, el botón cambia a “Ingresando…” y queda deshabilitado
+    const loadingBtn = await screen.findByRole("button", {name: /Ingresando/i});
+    expect(loadingBtn).toBeDisabled();
 
-    vi.advanceTimersByTime(1500);
-
-    // 👇 usa alertMock en vez de alertSpy
-    expect(alertMock).toHaveBeenCalledWith(
-      "Usuario no encontrado. Por favor, regístrate primero."
+    await waitFor(
+      () =>
+        expect(alertMock).toHaveBeenCalledWith(
+          "Usuario no encontrado. Por favor, regístrate primero."
+        ),
+      {timeout: 2000}
     );
+
     expect((window.location as any).href).not.toContain("/conceptPage");
     expect(screen.getByRole("button", {name: /ingresar/i})).not.toBeDisabled();
   });
 
   it("inicia sesión con credenciales válidas, guarda currentUser y redirige", async () => {
-    const user = userEvent.setup({delay: null});
-    // Semilla de usuarios en localStorage
+    const user = userEvent.setup();
     localStorage.setItem(
       "users",
       JSON.stringify([
@@ -108,13 +104,14 @@ describe("<LoginForm />", () => {
     await user.type(screen.getByLabelText(/contraseña/i), "abc12345");
     await user.click(screen.getByRole("button", {name: /ingresar/i}));
 
-    vi.advanceTimersByTime(1500);
-
-    // Verifica que guardó currentUser SIN password
-    const current = JSON.parse(localStorage.getItem("currentUser") || "{}");
-    expect(current).toEqual({fullName: "Jane Roe", email: "jane@roe.com"});
-
-    // Verifica “redirección” por escritura en href
-    expect((window.location as any).href).toBe("/conceptPage");
+    // espera a que se setee currentUser y se cambie href
+    await waitFor(
+      () => {
+        const current = JSON.parse(localStorage.getItem("currentUser") || "{}");
+        expect(current).toEqual({fullName: "Jane Roe", email: "jane@roe.com"});
+        expect((window.location as any).href).toBe("/conceptPage");
+      },
+      {timeout: 2000}
+    );
   });
 });
