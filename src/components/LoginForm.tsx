@@ -1,11 +1,24 @@
-import { useState } from "react";
+// src/components/LoginForm.tsx
+
+import React, { useState } from "react";
 import { Card, Form, Button, Container, Spinner } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
+import { routes } from "./../router";
 
 interface LoginProps {
   email: string;
   password: string;
 }
+
+// Interfaz para el objeto de usuario que se guarda en localStorage
+interface CurrentUser {
+  fullName: string;
+  email: string;
+  role: string;
+}
+
+// Endpoint de tu backend para el LOGIN
+const API_LOGIN_URL = "http://localhost:8090/api/v1/login";
 
 function LoginForm() {
   const navigate = useNavigate();
@@ -20,53 +33,70 @@ function LoginForm() {
     setLoginData({ ...loginData, [name]: value });
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simula una pequeña demora para el "proceso de inicio de sesión"
-    setTimeout(() => {
-      if (!loginData.email || !loginData.password) {
-        alert("Por favor, ingresa tu email y contraseña.");
-        setIsLoading(false);
-        return;
+    if (!loginData.email || !loginData.password) {
+      alert("Por favor, ingresa tu email y contraseña.");
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      // 1. LLAMADA REAL AL ENDPOINT DE LOGIN (Spring Security)
+      const response = await fetch(API_LOGIN_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+            correo: loginData.email, 
+            contrasenna: loginData.password 
+        }),
+      });
+
+      if (!response.ok) {
+        // Manejar error 401 (Unauthorized) devuelto por Spring Security si falla la autenticación
+        throw new Error("Credenciales inválidas. Correo o contraseña incorrectos.");
       }
 
-      // Obtener la lista de todos los usuarios registrados.
-      const usersJSON = localStorage.getItem("users");
-      const users = usersJSON ? JSON.parse(usersJSON) : [];
+      // 2. El backend devuelve UsuarioResponseDTO (que incluye nombres, apellidos y rol)
+      const userData = await response.json();
+      
+      const currentUser: CurrentUser = {
+        fullName: `${userData.nombres} ${userData.apellidos}`,
+        email: userData.correo,
+        role: userData.rol, // ROLE_ADMIN, ROLE_USUARIO, etc.
+      };
 
-      // Buscar un usuario que coincida con el email y la contraseña.
-      const foundUser = users.find(
-        (user: any) =>
-          user.email === loginData.email && user.password === loginData.password
-      );
+      // 3. Guardar el usuario actual (con el rol) en la sesión.
+      // (Aquí se debería guardar también el Token JWT si lo estuvieras usando)
+      localStorage.setItem("currentUser", JSON.stringify(currentUser));
 
-      if (foundUser) {
-        // 3. Si se encuentra, guardar solo al usuario actual en la sesión.
-        // ¡IMPORTANTE! No guardamos la contraseña en la sesión activa.
-        const currentUser = {
-          fullName: foundUser.fullName,
-          email: foundUser.email,
-        };
-        localStorage.setItem("currentUser", JSON.stringify(currentUser));
+      alert(`¡Inicio de sesión exitoso! Bienvenido, ${currentUser.fullName}.`);
 
-        alert("¡Inicio de sesión exitoso!");
-        window.location.href = "/conceptPage"; // Forzar recarga para actualizar el Navbar
+      // 4. REDIRECCIÓN BASADA EN ROL
+      if (currentUser.role === "ROLE_ADMIN") {
+        navigate(routes.adminDashboard);
       } else {
-        alert("Usuario no encontrado. Por favor, regístrate primero.");
-        setIsLoading(false);
+        // Redirección para usuarios normales
+        // Usamos window.location.href para forzar la recarga y actualizar el Navbar.
+        window.location.href = routes.conceptPage; 
       }
-    }, 1500);
+      
+    } catch (error) {
+      console.error("Error de login:", error);
+      alert(error instanceof Error ? error.message : "Ocurrió un error al intentar iniciar sesión.");
+      setIsLoading(false);
+    }
   };
 
   return (
     <>
       <Container className="d-flex align-items-center justify-content-center">
-        <Card className="shadow-lg w-100" style={{ maxWidth: 480 }}>
+        <Card className="shadow-lg w-100 bg-dark text-white" style={{ maxWidth: 480 }}>
           <Card.Body>
             <div className="text-center">
-              <Card.Title as="h1" className="h3 mb-1">
+              <Card.Title as="h1" className="h3 mb-1 text-warning">
                 Inicia sesión
               </Card.Title>
               <Card.Text className="text-muted">
@@ -87,8 +117,8 @@ function LoginForm() {
                     required
                     value={loginData.email}
                     onChange={handleChange}
+                    className="bg-secondary text-white border-0"
                   />
-                  {/* <Form.Control.Feedback type="invalid">Email inválido</Form.Control.Feedback> */}
                 </Form.Group>
 
                 <Form.Group className="mb-4" controlId="password">
@@ -100,13 +130,14 @@ function LoginForm() {
                     required
                     value={loginData.password}
                     onChange={handleChange}
+                    className="bg-secondary text-white border-0"
                   />
                 </Form.Group>
 
                 <div className="d-grid">
                   <Button
                     type="submit"
-                    variant="dark"
+                    variant="warning"
                     size="lg"
                     disabled={isLoading}
                   >
@@ -129,7 +160,7 @@ function LoginForm() {
 
                 <Card.Text className="text-center text-muted mt-4 mb-0">
                   ¿No tienes cuenta?{" "}
-                  <Link to="/registerPage" className="text-decoration-none">
+                  <Link to="/registerPage" className="text-decoration-none text-warning">
                     Regístrate
                   </Link>
                   .

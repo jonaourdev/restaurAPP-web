@@ -1,18 +1,29 @@
-import { useState } from "react";
-import { Card, Form, Button, Container, Spinner } from "react-bootstrap";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+// src/components/RegisterForm.tsx
 
-interface RegisterProps {
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Form, Button, Card, Container, Row, Col } from "react-bootstrap";
+import { routes } from "../router"; // Asumo que tienes un archivo de rutas
+
+// Interface para el estado del formulario
+interface FormData {
   fullName: string;
   email: string;
   password: string;
   confirmPassword: string;
 }
 
-function RegisterForm() {
-  const navigate = useNavigate();
+// Interface para el payload que espera el backend (UsuarioCreateDTO)
+interface UserPayload {
+  nombres: string;
+  apellidos: string;
+  correo: string;
+  contrasenna: string;
+}
 
-  const [formData, setFormData] = useState<RegisterProps>({
+const RegisterForm: React.FC = () => {
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState<FormData>({
     fullName: "",
     email: "",
     password: "",
@@ -21,188 +32,168 @@ function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
   };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault(); // evita que se recargue la página
+    e.preventDefault();
     setIsLoading(true);
 
-    // Simulación de una pequeña demora (como una llamada a un servidor)
-    setTimeout(() => {
-      // Validaciones básicas
-      if (
+    // --- 1. VALIDACIONES DE FRONTEND ---
+    if (
         !formData.fullName ||
         !formData.email ||
         !formData.password ||
         !formData.confirmPassword
-      ) {
+    ) {
         alert("Por favor completa todos los campos.");
         setIsLoading(false);
         return;
-      }
+    }
 
-      if (formData.password !== formData.confirmPassword) {
+    if (formData.password !== formData.confirmPassword) {
         alert("Las contraseñas no coinciden.");
         setIsLoading(false);
         return;
-      }
+    }
 
-      if (formData.password.length < 8) {
+    if (formData.password.length < 8) {
         alert("La contraseña debe tener al menos 8 caracteres.");
         setIsLoading(false);
         return;
-      }
+    }
 
-      // --- localStorage ---
+    // --- 2. PREPARAR DATOS PARA EL BACKEND ---
+    // Dividir el nombre completo en Nombres y Apellidos
+    const [nombres, ...apellidosArray] = formData.fullName.trim().split(" ");
+    
+    // Si solo se ingresó un nombre, usarlo para ambos. Si hay más, el resto son apellidos.
+    const apellidos = apellidosArray.length > 0 ? apellidosArray.join(" ") : nombres; 
 
-      // Obtener la lista de usuarios existentes o crear una nueva.
-      const usersJSON = localStorage.getItem("users");
-      const users = usersJSON ? JSON.parse(usersJSON) : [];
+    const userPayload: UserPayload = {
+        nombres: nombres,
+        apellidos: apellidos,
+        correo: formData.email,
+        contrasenna: formData.password,
+    };
 
-      // Comprobar si el email ya está registrado.
-      const userExists = users.some(
-        (user: RegisterProps) => user.email === formData.email
-      );
-
-      if (userExists) {
-        alert("Este correo electrónico ya está registrado.");
+    // --- 3. LLAMADA REAL AL BACKEND ---
+    fetch("http://localhost:8090/api/v1/usuarios", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(userPayload),
+    })
+    .then(async (response) => {
+        if (!response.ok) {
+            // Intenta leer el mensaje de error del backend (ej: "Correo ya registrado")
+            try {
+                const errorData = await response.json();
+                throw new Error(errorData.message || "Error desconocido al registrar.");
+            } catch (jsonError) {
+                // En caso de que la respuesta no sea JSON o no tenga un mensaje legible
+                throw new Error(`Error en el servidor: Código ${response.status}`);
+            }
+        }
+        return response.json(); // Devuelve la respuesta si fue exitosa
+    })
+    .then(() => {
+        // Registro exitoso
+        alert("¡Cuenta creada correctamente! Serás redirigido al inicio de sesión.");
+        navigate(routes.loginPage); // Redirigir al login
+    })
+    .catch((error) => {
+        // Manejo de errores (red, servidor, validación)
+        console.error("Error en registro:", error);
+        alert(`Fallo en el registro: ${error.message}`);
+    })
+    .finally(() => {
         setIsLoading(false);
-        return;
-      }
-
-      // Añadir el nuevo usuario a la lista.
-      const newUser = {
-        fullName: formData.fullName,
-        email: formData.email,
-        password: formData.password,
-      };
-      users.push(newUser);
-
-      // 4. Guardar la lista actualizada en localStorage.
-      localStorage.setItem("users", JSON.stringify(users));
-      alert("¡Cuenta creada correctamente! Serás redirigido.");
-      navigate("/loginPage"); // Redirigir al login
-    }, 1500);
+    });
   };
 
   return (
-    <>
-      <Container className="d-flex align-items-center justify-content-center">
-        <Card className="shadow-lg w-100" style={{ maxWidth: 480 }}>
-          <Card.Body>
-            <div className="text-center">
-              <Card.Title as="h1" className="h3 mb-1">
-                Crear cuenta
-              </Card.Title>
-              <Card.Text className="text-muted">
-                Regístrate para comenzar
-              </Card.Text>
-            </div>
-
-            <div className="mt-4">
-              <Form noValidate onSubmit={handleSubmit}>
-                <Form.Group className="mb-4" controlId="fullName">
-                  <Form.Label className="text-muted">
-                    Nombre completo
-                  </Form.Label>
+    <Container className="my-5">
+      <Row className="justify-content-center">
+        <Col md={6}>
+          <Card className="shadow-lg p-4 bg-dark text-white">
+            <Card.Body>
+              <h2 className="text-center mb-4 text-warning">Registro de Usuario</h2>
+              <Form onSubmit={handleSubmit}>
+                
+                <Form.Group className="mb-3" controlId="formBasicFullName">
+                  <Form.Label>Nombre Completo</Form.Label>
                   <Form.Control
                     type="text"
+                    placeholder="Ingresa tu nombre y apellido"
                     name="fullName"
-                    placeholder="Nombre y apellido"
-                    required
-                    minLength={3}
                     value={formData.fullName}
                     onChange={handleChange}
+                    required
                   />
-                  <Form.Control.Feedback type="invalid">
-                    Ingresa tu nombre completo.
-                  </Form.Control.Feedback>
                 </Form.Group>
-
-                <Form.Group className="mb-4" controlId="email">
-                  <Form.Label className="text-muted">
-                    Correo electrónico
-                  </Form.Label>
+                
+                <Form.Group className="mb-3" controlId="formBasicEmail">
+                  <Form.Label>Correo Electrónico</Form.Label>
                   <Form.Control
                     type="email"
+                    placeholder="Ingresa tu correo"
                     name="email"
-                    placeholder="tucorreo@dominio.com"
-                    required
                     value={formData.email}
                     onChange={handleChange}
+                    required
                   />
-                  <Form.Control.Feedback type="invalid">
-                    Ingresa un correo válido.
-                  </Form.Control.Feedback>
                 </Form.Group>
 
-                <Form.Group className="mb-4" controlId="password">
-                  <Form.Label className="text-muted">Contraseña</Form.Label>
+                <Form.Group className="mb-3" controlId="formBasicPassword">
+                  <Form.Label>Contraseña</Form.Label>
                   <Form.Control
                     type="password"
+                    placeholder="Contraseña (mínimo 8 caracteres)"
                     name="password"
-                    placeholder="Mínimo 8 caracteres"
-                    required
-                    minLength={8}
                     value={formData.password}
                     onChange={handleChange}
+                    required
+                    minLength={8}
                   />
-                  <Form.Control.Feedback type="invalid">
-                    La contraseña debe tener al menos 8 caracteres.
-                  </Form.Control.Feedback>
                 </Form.Group>
 
-                <Form.Group className="mb-4" controlId="confirmPassword">
-                  <Form.Label className="text-muted">
-                    Confirmar contraseña
-                  </Form.Label>
+                <Form.Group className="mb-4" controlId="formBasicConfirmPassword">
+                  <Form.Label>Confirmar Contraseña</Form.Label>
                   <Form.Control
                     type="password"
+                    placeholder="Confirma tu contraseña"
                     name="confirmPassword"
-                    placeholder="Repite tu contraseña"
-                    required
                     value={formData.confirmPassword}
                     onChange={handleChange}
+                    required
+                    minLength={8}
                   />
-                  <Form.Control.Feedback type="invalid">
-                    Las contraseñas no coinciden.
-                  </Form.Control.Feedback>
                 </Form.Group>
 
-                <div className="d-grid">
-                  <Button
-                    type="submit"
-                    variant="dark"
-                    size="lg"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <>
-                        <Spinner as="span" animation="border" size="sm" />
-                        <span className="ms-2">Creando cuenta...</span>
-                      </>
-                    ) : (
-                      "Crear cuenta"
-                    )}
-                  </Button>
+                <Button variant="warning" type="submit" className="w-100 mb-3" disabled={isLoading}>
+                  {isLoading ? "Registrando..." : "Registrar"}
+                </Button>
+                
+                <div className="text-center">
+                  <small className="text-muted">
+                    ¿Ya tienes una cuenta?{" "}
+                    <Link to={routes.loginPage} className="text-warning">
+                      Inicia Sesión
+                    </Link>
+                  </small>
                 </div>
-
-                <Card.Text className="text-center text-muted mt-4 mb-0">
-                  ¿Ya tienes cuenta?{" "}
-                  <Link to="/loginPage" className="text-decoration-none">
-                    Inicia sesión
-                  </Link>
-                  .
-                </Card.Text>
               </Form>
-            </div>
-          </Card.Body>
-        </Card>
-      </Container>
-    </>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+    </Container>
   );
-}
+};
 
 export default RegisterForm;

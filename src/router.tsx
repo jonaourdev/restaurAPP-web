@@ -13,6 +13,8 @@ import AddTechnicalPage from "./pages/AddTechnicalPage";
 import FormativeConceptDetail from "./components/FormativeConcepts/FormativeConceptDetail";
 import TechnicalConceptDetailPage from "./pages/TechnicalConceptDetailPage";
 import AddChoicePage from "./pages/AddChoicePage";
+import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
+import AdminLayout from "./components/Admin/AdminLayout";
 
 
 export const routes = {
@@ -29,6 +31,10 @@ export const routes = {
   addFormative: "/add/formative",
   addFamily: "/add/family",
   addTechnical: "/add/technical",   
+
+  adminDashboardPage: "/admin/dashboard",
+  adminLayout: "/admin",
+
 
 } as const;
 
@@ -57,6 +63,15 @@ const router = createBrowserRouter([
       // {path: "*", element: <NotFound></NotFound>},
     ],
   },
+
+  {
+      path: routes.adminLayout,
+      element: <AdminLayout />,
+      children: [
+          {path: routes.adminDashboardPage, element: <AdminDashboardPage />},
+          // Rutas placeholder para los otros botones del sidebar
+      ]
+  }
 ]);
 
 export default router;
