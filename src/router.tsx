@@ -6,7 +6,12 @@ import RegisterPage from "./pages/RegisterPage";
 import ConceptPage from "./pages/ConceptPage";
 import FormativeConceptPage from "./pages/FormativeConceptPage";
 import TechnicalConceptPage from "./pages/TechnicalConceptPage";
+import FamiliyDetailPage from "./pages/FamiliyDetailPage";
+import AddFormativePage from "./pages/AddFormativePage";
+import AddFamilyPage from "./pages/AddFamilyPage";
+import AddTechnicalPage from "./pages/AddTechnicalPage";
 import FormativeConceptDetail from "./components/FormativeConcepts/FormativeConceptDetail";
+import TechnicalConceptDetailPage from "./pages/TechnicalConceptDetailPage";
 import AddChoicePage from "./pages/AddChoicePage";
 
 
@@ -19,7 +24,12 @@ export const routes = {
   TechnicalConceptPage: "/TechnicalConceptPage",
   conceptDetail: "/concepto/:id",
   familyDetail: "/familia/:id",
-  addChoicePage: "/addChoicePage",
+  technicalConceptDetailPage: "/technical/concept/:id",
+  AddChoice: "/AddChoicePage",
+  addFormative: "/add/formative",
+  addFamily: "/add/family",
+  addTechnical: "/add/technical",   
+
 } as const;
 
 const router = createBrowserRouter([
@@ -35,9 +45,14 @@ const router = createBrowserRouter([
       {path: routes.conceptPage, element: <ConceptPage></ConceptPage>},
       {path: routes.FormativeConceptPage, element: <FormativeConceptPage></FormativeConceptPage>},
       {path: routes.TechnicalConceptPage, element: <TechnicalConceptPage></TechnicalConceptPage>},
-      {path: "/concepto/:id", element: <FormativeConceptDetail></FormativeConceptDetail>},
-      {path: "/familia/:id", element: <TechnicalConceptPage></TechnicalConceptPage>},
-      { path: routes.addChoicePage, element: <AddChoicePage /> },
+      {path: routes.conceptDetail, element: <FormativeConceptDetail></FormativeConceptDetail>},
+      {path: routes.familyDetail, element: <FamiliyDetailPage></FamiliyDetailPage>},
+      {path: routes.AddChoice, element: <AddChoicePage></AddChoicePage>},
+      {path: routes.addFormative, element: <AddFormativePage /> },
+      {path: routes.addFamily, element: <AddFamilyPage /> },
+      {path: routes.addTechnical, element: <AddTechnicalPage /> },
+      {path: routes.technicalConceptDetailPage, element: <TechnicalConceptDetailPage></TechnicalConceptDetailPage>},
+   
 
       // {path: "*", element: <NotFound></NotFound>},
     ],

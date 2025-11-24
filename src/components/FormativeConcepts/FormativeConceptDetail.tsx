@@ -1,7 +1,7 @@
 import { Container, Card } from "react-bootstrap";
 import { useParams, Link } from "react-router-dom";
 import { routes } from "../../router";
-import {dataHelper, type Formative } from "../../utils/Helper";
+import { dataHelper, type Formative } from "../../utils/Helper";
 
  
 export default function FormativeConceptDetail() {
@@ -49,7 +49,8 @@ export default function FormativeConceptDetail() {
           )}
 
           <div className="mt-3">
-            <Link to={routes.FormativeConceptPage} className="btn btn-outline-primary">
+            <Link to={routes.FormativeConceptPage} 
+            className="btn btn-outline-primary">
               Volver a conceptos
             </Link>
           </div>

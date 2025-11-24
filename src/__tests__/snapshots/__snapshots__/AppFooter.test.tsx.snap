@@ -1,0 +1,15 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`<AppFooter /> > debería renderizarse correctamente y coincidir con el snapshot 1`] = `
+<div>
+  <footer
+    class=" py-3 mt-auto footerCSS"
+  >
+    <div
+      class="text-center small text-dark container"
+    >
+      © 2025 - Excelsior - Todos los derechos reservados
+    </div>
+  </footer>
+</div>
+`;
