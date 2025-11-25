@@ -40,7 +40,7 @@ function AppNavbar() {
     e.preventDefault();
     if (!busqueda.trim()) return;
     alert(`Buscando: ${busqueda}`);
-    // Aquí puedes redirigir a una página de resultados de búsqueda
+    // Redirigir a una página de resultados de búsqueda
     // navigate(`/search?q=${busqueda}`);
   };
 

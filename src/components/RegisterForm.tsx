@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Card, Form, Button, Container, Spinner } from "react-bootstrap";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
+import "../css/AuthForm.css"; // <-- IMPORTANTE
 
 interface RegisterProps {
   fullName: string;
@@ -18,6 +20,7 @@ function RegisterForm() {
     password: "",
     confirmPassword: "",
   });
+
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -26,182 +29,184 @@ function RegisterForm() {
   };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault(); // evita que se recargue la página
+    e.preventDefault();
     setIsLoading(true);
 
-    // Simulación de una pequeña demora (como una llamada a un servidor)
     setTimeout(() => {
-      // Validaciones básicas
       if (
         !formData.fullName ||
         !formData.email ||
         !formData.password ||
         !formData.confirmPassword
       ) {
-        alert("Por favor completa todos los campos.");
+        Swal.fire({
+          icon: "warning",
+          title: "Campos incompletos",
+          text: "Por favor completa todos los campos.",
+          confirmButtonColor: "#3085d6",
+        });
         setIsLoading(false);
         return;
       }
 
       if (formData.password !== formData.confirmPassword) {
-        alert("Las contraseñas no coinciden.");
+        Swal.fire({
+          icon: "error",
+          title: "Contraseñas no coinciden",
+          text: "Asegúrate de escribir la misma contraseña.",
+          confirmButtonColor: "#d33",
+        });
         setIsLoading(false);
         return;
       }
 
       if (formData.password.length < 8) {
-        alert("La contraseña debe tener al menos 8 caracteres.");
+        Swal.fire({
+          icon: "error",
+          title: "Contraseña demasiado corta",
+          text: "La contraseña debe tener al menos 8 caracteres.",
+          confirmButtonColor: "#d33",
+        });
         setIsLoading(false);
         return;
       }
 
-      // --- localStorage ---
-
-      // Obtener la lista de usuarios existentes o crear una nueva.
       const usersJSON = localStorage.getItem("users");
       const users = usersJSON ? JSON.parse(usersJSON) : [];
 
-      // Comprobar si el email ya está registrado.
       const userExists = users.some(
         (user: RegisterProps) => user.email === formData.email
       );
 
       if (userExists) {
-        alert("Este correo electrónico ya está registrado.");
+        Swal.fire({
+          icon: "warning",
+          title: "Correo registrado",
+          text: "Este correo ya tiene una cuenta asociada.",
+          confirmButtonColor: "#d33",
+        });
         setIsLoading(false);
         return;
       }
 
-      // Añadir el nuevo usuario a la lista.
       const newUser = {
         fullName: formData.fullName,
         email: formData.email,
         password: formData.password,
       };
-      users.push(newUser);
 
-      // 4. Guardar la lista actualizada en localStorage.
+      users.push(newUser);
       localStorage.setItem("users", JSON.stringify(users));
-      alert("¡Cuenta creada correctamente! Serás redirigido.");
-      navigate("/loginPage"); // Redirigir al login
+
+      Swal.fire({
+        icon: "success",
+        title: "Cuenta creada",
+        text: "Tu cuenta ha sido creada correctamente.",
+        confirmButtonColor: "#3085d6",
+      }).then(() => {
+        navigate("/loginPage");
+      });
     }, 1500);
   };
 
   return (
-    <>
-      <Container className="d-flex align-items-center justify-content-center">
-        <Card className="shadow-lg w-100" style={{ maxWidth: 480 }}>
-          <Card.Body>
-            <div className="text-center">
-              <Card.Title as="h1" className="h3 mb-1">
-                Crear cuenta
-              </Card.Title>
-              <Card.Text className="text-muted">
-                Regístrate para comenzar
+    <Container className="d-flex align-items-center justify-content-center">
+      <Card className="auth-card">
+        <Card.Body>
+          <div className="text-center">
+            <Card.Title as="h1" className="h3 mb-1">
+              Crear cuenta
+            </Card.Title>
+            <Card.Text className="auth-subtitle">
+              Regístrate para comenzar
+            </Card.Text>
+          </div>
+
+          <div className="mt-4">
+            <Form noValidate onSubmit={handleSubmit}>
+              <Form.Group className="mb-4" controlId="fullName">
+                <Form.Label className="text-muted">Nombre completo</Form.Label>
+                <Form.Control
+                  type="text"
+                  name="fullName"
+                  placeholder="Nombre y apellido"
+                  required
+                  value={formData.fullName}
+                  onChange={handleChange}
+                />
+              </Form.Group>
+
+              <Form.Group className="mb-4" controlId="email">
+                <Form.Label className="text-muted">
+                  Correo electrónico
+                </Form.Label>
+                <Form.Control
+                  type="email"
+                  name="email"
+                  placeholder="tucorreo@dominio.com"
+                  required
+                  value={formData.email}
+                  onChange={handleChange}
+                />
+              </Form.Group>
+
+              <Form.Group className="mb-4" controlId="password">
+                <Form.Label className="text-muted">Contraseña</Form.Label>
+                <Form.Control
+                  type="password"
+                  name="password"
+                  placeholder="Mínimo 8 caracteres"
+                  required
+                  value={formData.password}
+                  onChange={handleChange}
+                />
+              </Form.Group>
+
+              <Form.Group className="mb-4" controlId="confirmPassword">
+                <Form.Label className="text-muted">
+                  Confirmar contraseña
+                </Form.Label>
+                <Form.Control
+                  type="password"
+                  name="confirmPassword"
+                  placeholder="Repite tu contraseña"
+                  required
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                />
+              </Form.Group>
+
+              <div className="d-grid">
+                <Button
+                  type="submit"
+                  variant="dark"
+                  size="lg"
+                  className="auth-submit-btn"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Spinner as="span" animation="border" size="sm" />
+                      <span className="ms-2">Creando cuenta...</span>
+                    </>
+                  ) : (
+                    "Crear cuenta"
+                  )}
+                </Button>
+              </div>
+
+              <Card.Text className="text-center text-muted mt-4 mb-0">
+                ¿Ya tienes cuenta?{" "}
+                <Link to="/loginPage" className="auth-link">
+                  Inicia sesión
+                </Link>
+                .
               </Card.Text>
-            </div>
-
-            <div className="mt-4">
-              <Form noValidate onSubmit={handleSubmit}>
-                <Form.Group className="mb-4" controlId="fullName">
-                  <Form.Label className="text-muted">
-                    Nombre completo
-                  </Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="fullName"
-                    placeholder="Nombre y apellido"
-                    required
-                    minLength={3}
-                    value={formData.fullName}
-                    onChange={handleChange}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    Ingresa tu nombre completo.
-                  </Form.Control.Feedback>
-                </Form.Group>
-
-                <Form.Group className="mb-4" controlId="email">
-                  <Form.Label className="text-muted">
-                    Correo electrónico
-                  </Form.Label>
-                  <Form.Control
-                    type="email"
-                    name="email"
-                    placeholder="tucorreo@dominio.com"
-                    required
-                    value={formData.email}
-                    onChange={handleChange}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    Ingresa un correo válido.
-                  </Form.Control.Feedback>
-                </Form.Group>
-
-                <Form.Group className="mb-4" controlId="password">
-                  <Form.Label className="text-muted">Contraseña</Form.Label>
-                  <Form.Control
-                    type="password"
-                    name="password"
-                    placeholder="Mínimo 8 caracteres"
-                    required
-                    minLength={8}
-                    value={formData.password}
-                    onChange={handleChange}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    La contraseña debe tener al menos 8 caracteres.
-                  </Form.Control.Feedback>
-                </Form.Group>
-
-                <Form.Group className="mb-4" controlId="confirmPassword">
-                  <Form.Label className="text-muted">
-                    Confirmar contraseña
-                  </Form.Label>
-                  <Form.Control
-                    type="password"
-                    name="confirmPassword"
-                    placeholder="Repite tu contraseña"
-                    required
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    Las contraseñas no coinciden.
-                  </Form.Control.Feedback>
-                </Form.Group>
-
-                <div className="d-grid">
-                  <Button
-                    type="submit"
-                    variant="dark"
-                    size="lg"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <>
-                        <Spinner as="span" animation="border" size="sm" />
-                        <span className="ms-2">Creando cuenta...</span>
-                      </>
-                    ) : (
-                      "Crear cuenta"
-                    )}
-                  </Button>
-                </div>
-
-                <Card.Text className="text-center text-muted mt-4 mb-0">
-                  ¿Ya tienes cuenta?{" "}
-                  <Link to="/loginPage" className="text-decoration-none">
-                    Inicia sesión
-                  </Link>
-                  .
-                </Card.Text>
-              </Form>
-            </div>
-          </Card.Body>
-        </Card>
-      </Container>
-    </>
+            </Form>
+          </div>
+        </Card.Body>
+      </Card>
+    </Container>
   );
 }
 

@@ -1,0 +1,90 @@
+/* ============================= */
+/*      CONTENEDOR GENERAL       */
+/* ============================= */
+
+.auth-page-background {
+  background: rgb(22, 21, 21);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+/* ============================= */
+/*         CARD PRINCIPAL        */
+/* ============================= */
+
+.auth-card {
+  background: #ffffffee;
+  border-radius: 18px;
+  padding: 2rem;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.25);
+  width: 100%;
+  max-width: 480px;
+  animation: fadeIn 0.5s ease;
+}
+
+.auth-card h1 {
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 0.2rem;
+}
+
+/* Subtítulo */
+.auth-subtitle {
+  color: #555;
+  font-size: 0.95rem;
+}
+
+/* ============================= */
+/*            FORMULARIO         */
+/* ============================= */
+
+.auth-card input.form-control {
+  border-radius: 12px;
+  padding: 0.75rem;
+  border: 1px solid #cacaca;
+  transition: all 0.2s ease;
+}
+
+.auth-card input.form-control:focus {
+  border-color: #f4a90a;
+  box-shadow: 0 0 0 0.2rem rgba(244, 169, 10, 0.25);
+}
+
+/* ============================= */
+/*            BOTONES            */
+/* ============================= */
+
+.auth-submit-btn {
+  border-radius: 12px;
+  font-weight: 600;
+  padding: 0.8rem;
+}
+
+.auth-link {
+  color: #f09b05;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.auth-link:hover {
+  text-decoration: underline;
+}
+
+/* ============================= */
+/*         ANIMACIONES           */
+/* ============================= */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
