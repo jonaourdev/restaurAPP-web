@@ -2,9 +2,8 @@
   border: 0;
   border-radius: 22px;
   color: #1a1a1a;
-  background: linear-gradient(180deg, #f4a90a 0%, #f7c65a 55%, #f4e7c2 100%);
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
-
+  background: linear-gradient(180deg, #ffcc45 0%, #ffe28a 50%, #d7e7ff 100%);
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.25);
   overflow: hidden;
   min-height: 450px;
   transition: transform 400ms cubic-bezier(0.19, 1, 0.22, 1),
