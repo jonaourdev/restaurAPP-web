@@ -4,21 +4,22 @@ import React, { useState } from "react";
 import { Card, Form, Button, Container, Spinner } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import { routes } from "./../router";
+import { API_BASE_URL } from "../utils/Helper";
 
 interface LoginProps {
   email: string;
   password: string;
 }
 
-// Interfaz para el objeto de usuario que se guarda en localStorage
+// CORRECCIÓN 1: Agregar el ID a la interfaz del usuario guardado
 interface CurrentUser {
+  id: number; // <--- NUEVO CAMPO
   fullName: string;
   email: string;
   role: string;
 }
 
-// Endpoint de tu backend para el LOGIN
-const API_LOGIN_URL = "http://localhost:8090/api/v1/login";
+const API_LOGIN_URL = `${API_BASE_URL}/usuarios/login`;
 
 function LoginForm() {
   const navigate = useNavigate();
@@ -44,133 +45,98 @@ function LoginForm() {
     }
 
     try {
-      // 1. LLAMADA REAL AL ENDPOINT DE LOGIN (Spring Security)
       const response = await fetch(API_LOGIN_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
             correo: loginData.email, 
-            contrasenna: loginData.password 
+            password: loginData.password 
         }),
       });
 
       if (!response.ok) {
-        // Manejar error 401 (Unauthorized) devuelto por Spring Security si falla la autenticación
-        throw new Error("Credenciales inválidas. Correo o contraseña incorrectos.");
+        let errorMessage = "Credenciales inválidas.";
+        try {
+            const errorData = await response.json();
+            if (errorData.message) errorMessage = errorData.message;
+        } catch (e) {}
+        throw new Error(errorMessage);
       }
 
-      // 2. El backend devuelve UsuarioResponseDTO (que incluye nombres, apellidos y rol)
       const userData = await response.json();
       
+      // CORRECCIÓN 2: Guardar el ID que viene del backend
       const currentUser: CurrentUser = {
+        id: userData.idUsuario, // <--- GUARDAR ID REAL
         fullName: `${userData.nombres} ${userData.apellidos}`,
         email: userData.correo,
-        role: userData.rol, // ROLE_ADMIN, ROLE_USUARIO, etc.
+        role: userData.rol, 
       };
 
-      // 3. Guardar el usuario actual (con el rol) en la sesión.
-      // (Aquí se debería guardar también el Token JWT si lo estuvieras usando)
       localStorage.setItem("currentUser", JSON.stringify(currentUser));
 
       alert(`¡Inicio de sesión exitoso! Bienvenido, ${currentUser.fullName}.`);
 
-      // 4. REDIRECCIÓN BASADA EN ROL
-      if (currentUser.role === "ROLE_ADMIN") {
-        navigate(routes.adminDashboard);
+      if (currentUser.role === "ADMIN") {
+        navigate(routes.adminDashboardPage);
       } else {
-        // Redirección para usuarios normales
-        // Usamos window.location.href para forzar la recarga y actualizar el Navbar.
         window.location.href = routes.conceptPage; 
       }
       
     } catch (error) {
       console.error("Error de login:", error);
-      alert(error instanceof Error ? error.message : "Ocurrió un error al intentar iniciar sesión.");
+      alert(error instanceof Error ? error.message : "Error al iniciar sesión.");
       setIsLoading(false);
     }
   };
 
   return (
-    <>
-      <Container className="d-flex align-items-center justify-content-center">
-        <Card className="shadow-lg w-100 bg-dark text-white" style={{ maxWidth: 480 }}>
-          <Card.Body>
-            <div className="text-center">
-              <Card.Title as="h1" className="h3 mb-1 text-warning">
-                Inicia sesión
-              </Card.Title>
-              <Card.Text className="text-muted">
-                Ingresa abajo rellenando con tus datos
+    <Container className="d-flex align-items-center justify-content-center">
+      <Card className="shadow-lg w-100 bg-dark text-white" style={{ maxWidth: 480 }}>
+        <Card.Body>
+          <div className="text-center">
+            <Card.Title as="h1" className="h3 mb-1 text-warning">Inicia sesión</Card.Title>
+            <Card.Text className="text-muted">Ingresa tus credenciales</Card.Text>
+          </div>
+          <div className="mt-4">
+            <Form noValidate onSubmit={handleSubmit}>
+              <Form.Group className="mb-4" controlId="email">
+                <Form.Label className="text-muted">Correo electrónico</Form.Label>
+                <Form.Control
+                  type="email"
+                  name="email"
+                  placeholder="admin@restaurapp.cl"
+                  required
+                  value={loginData.email}
+                  onChange={handleChange}
+                  className="bg-secondary text-white border-0"
+                />
+              </Form.Group>
+              <Form.Group className="mb-4" controlId="password">
+                <Form.Label className="text-muted">Contraseña</Form.Label>
+                <Form.Control
+                  type="password"
+                  name="password"
+                  placeholder="Contraseña"
+                  required
+                  value={loginData.password}
+                  onChange={handleChange}
+                  className="bg-secondary text-white border-0"
+                />
+              </Form.Group>
+              <div className="d-grid">
+                <Button type="submit" variant="warning" size="lg" disabled={isLoading}>
+                  {isLoading ? <Spinner as="span" animation="border" size="sm" /> : "Ingresar"}
+                </Button>
+              </div>
+              <Card.Text className="text-center text-muted mt-4 mb-0">
+                ¿No tienes cuenta? <Link to="/registerPage" className="text-warning">Regístrate</Link>
               </Card.Text>
-            </div>
-
-            <div className="mt-4">
-              <Form noValidate onSubmit={handleSubmit}>
-                <Form.Group className="mb-4" controlId="email">
-                  <Form.Label className="text-muted">
-                    Correo electrónico
-                  </Form.Label>
-                  <Form.Control
-                    type="email"
-                    name="email"
-                    placeholder="Correo electrónico"
-                    required
-                    value={loginData.email}
-                    onChange={handleChange}
-                    className="bg-secondary text-white border-0"
-                  />
-                </Form.Group>
-
-                <Form.Group className="mb-4" controlId="password">
-                  <Form.Label className="text-muted">Contraseña</Form.Label>
-                  <Form.Control
-                    type="password"
-                    name="password"
-                    placeholder="Contraseña"
-                    required
-                    value={loginData.password}
-                    onChange={handleChange}
-                    className="bg-secondary text-white border-0"
-                  />
-                </Form.Group>
-
-                <div className="d-grid">
-                  <Button
-                    type="submit"
-                    variant="warning"
-                    size="lg"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <>
-                        <Spinner
-                          as="span"
-                          animation="border"
-                          size="sm"
-                          role="status"
-                          aria-hidden="true"
-                        />
-                        <span className="ms-2">Ingresando...</span>
-                      </>
-                    ) : (
-                      "Ingresar"
-                    )}
-                  </Button>
-                </div>
-
-                <Card.Text className="text-center text-muted mt-4 mb-0">
-                  ¿No tienes cuenta?{" "}
-                  <Link to="/registerPage" className="text-decoration-none text-warning">
-                    Regístrate
-                  </Link>
-                  .
-                </Card.Text>
-              </Form>
-            </div>
-          </Card.Body>
-        </Card>
-      </Container>
-    </>
+            </Form>
+          </div>
+        </Card.Body>
+      </Card>
+    </Container>
   );
 }
 

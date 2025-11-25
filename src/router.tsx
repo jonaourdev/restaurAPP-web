@@ -1,4 +1,4 @@
-import {createBrowserRouter} from "react-router-dom";
+import {createBrowserRouter , Navigate} from "react-router-dom";
 import Layout from "./components/Layout";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
@@ -15,7 +15,7 @@ import TechnicalConceptDetailPage from "./pages/TechnicalConceptDetailPage";
 import AddChoicePage from "./pages/AddChoicePage";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import AdminLayout from "./components/Admin/AdminLayout";
-
+import AdminConcepts from "./components/Admin/adminConcept";
 
 export const routes = {
   landing: "/",
@@ -34,6 +34,7 @@ export const routes = {
 
   adminDashboardPage: "/admin/dashboard",
   adminLayout: "/admin",
+  AdminConceptPage: "/admin/concepts",
 
 
 } as const;
@@ -68,7 +69,9 @@ const router = createBrowserRouter([
       path: routes.adminLayout,
       element: <AdminLayout />,
       children: [
+          {index: true, element: <Navigate to="dashboard" replace /> },
           {path: routes.adminDashboardPage, element: <AdminDashboardPage />},
+          {path: routes.AdminConceptPage, element: <AdminConcepts />},
           // Rutas placeholder para los otros botones del sidebar
       ]
   }
