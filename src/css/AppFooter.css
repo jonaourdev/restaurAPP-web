@@ -1,3 +1,5 @@
 .footerCSS {
-  background-color: rgb(255, 184, 0);
+  background: linear-gradient(180deg, #ffdd77 0%, #ffc845 60%, #f4a90a 100%);
+  color: #1a1a1a;
+  padding: 1.5rem 0;
 }

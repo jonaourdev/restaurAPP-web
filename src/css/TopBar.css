@@ -1,7 +1,6 @@
 .nav-yellow {
-  background: #ffb300;
-  border-top: 1px solid #6f4c00;
-  border-bottom: 1px solid #6f4c00;
+  background: linear-gradient(180deg, #ffdd77 0%, #ffc845 60%, #f4a90a 100%);
+  color: #1a1a1a;
 }
 
 .brand-center {

@@ -19,9 +19,10 @@ export default function FamilyDetail() {
     return (
       <Container className="py-5">
         <h2>Familia no encontrada</h2>
-        <Link 
+        <Link
           to={routes.TechnicalConceptPage}
-          className="btn btn-outline-primary">
+          className="btn btn-outline-primary"
+        >
           Volver
         </Link>
       </Container>
@@ -33,22 +34,22 @@ export default function FamilyDetail() {
       <Card className="article-card d-flex flex-column shadow-lg">
         <Card.Body>
           <h1 className="text-center mb-4">{family.name}</h1>
-          
+
           <div className="row">
             <div className="col-md-6">
               <h3>Descripción</h3>
               <p>{family.descriptions}</p>
-              
+
               <h3>Componentes</h3>
               <p>{family.componentItemn}</p>
             </div>
-            
+
             <div className="col-md-6">
               {family.image && (
-                <img 
-                  src={family.image} 
+                <img
+                  src={family.image}
                   alt={family.name}
-                  className="img-fluid rounded shadow" 
+                  className="img-fluid rounded shadow"
                 />
               )}
             </div>
@@ -73,11 +74,11 @@ export default function FamilyDetail() {
           )}
 
           <div className="mt-4 text-center">
-            <Link 
-              to={routes.TechnicalConceptPage} 
+            <Link
+              to={routes.TechnicalConceptPage}
               className="btn btn-outline-primary"
             >
-              Volver a Familias
+              Volver
             </Link>
           </div>
         </Card.Body>

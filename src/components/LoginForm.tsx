@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, Form, Button, Container, Spinner } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-import "../css/AuthForm.css"; // IMPORTANTE
+import "../css/AuthForm.css"; 
 
 interface LoginProps {
   email: string;

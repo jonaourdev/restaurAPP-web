@@ -17,30 +17,36 @@ export default function TechnicalConcepts() {
       <h1 className="text-center mb-5 display-5">Technical Concepts</h1>
 
       <div className="technical-grid">
-        {families.map((family) => (
-          <Card
-            key={family.idFamilies}
-            className="article-card d-flex flex-column shadow-lg"
-            style={{ width: "18rem" }}
-          >
-            {/* Imagen */}
-            {family.image ? (
-              <Card.Img
-                variant="top"
-                src={family.image}
-                alt={family.name}
-                className="concept-image"
-              />
-            ) : (
-              <div className="image-placeholder"></div>
-            )}
+        {families
+          //  Filtra solo las familias con subConceptos reales
+          .filter(
+            (family) =>
+              Array.isArray(family.subConcepto) &&
+              family.subConcepto.length > 0 &&
+              family.subConcepto.some((s) => s.name) // asegura que no esté vacío
+          )
+          .map((family) => (
+            <Card
+              key={family.idFamilies}
+              className="article-card square-card d-flex flex-column shadow-lg"
+            >
+              {/* Imagen */}
+              {family.image ? (
+                <Card.Img
+                  variant="top"
+                  src={family.image}
+                  alt={family.name}
+                  className="concept-image"
+                />
+              ) : (
+                <div className="image-placeholder concept-image"></div>
+              )}
 
-            <Card.Body className="d-flex flex-column">
-              {/* Lista de subconceptos */}
-              <Card.Title className="mb-2">
-                {family.subConcepto && family.subConcepto.length > 0 ? (
-                  <ul className="list-unstyled">
-                    {family.subConcepto.map((sub) => (
+              <Card.Body className="d-flex flex-column p-2">
+                {/* Nombres de Subconceptos */}
+                <Card.Title className="mb-2">
+                  <ul className="list-unstyled m-0">
+                    {family.subConcepto!.map((sub) => (
                       <li key={sub.conceptId} className="py-1">
                         <Link to={`/technical/concept/${sub.conceptId}`}>
                           {sub.name}
@@ -48,36 +54,33 @@ export default function TechnicalConcepts() {
                       </li>
                     ))}
                   </ul>
-                ) : (
-                  <div className="text-center py-3">
-                    <span className="chev">⌄</span>
-                  </div>
-                )}
-              </Card.Title>
+                </Card.Title>
 
-              {/* Subtítulo Familia */}
-              <Card.Subtitle className="mb-3">
-                Familia: {family.name}
-              </Card.Subtitle>
+                {/* Familia */}
+                <Card.Subtitle className="mb-2">
+                  Familia: {family.name}
+                </Card.Subtitle>
 
-              {/* Este espacio empuja al botón hacia abajo */}
-              <div className="flex-grow-1"></div>
+                {/* Descripción (del primer subconcepto por defecto) */}
+                <Card.Text>
+                  {family.subConcepto && family.subConcepto[0].description
+                    ? family.subConcepto[0].description.slice(0, 80) + "..."
+                    : "Sin descripción disponible."}
+                </Card.Text>
+                <div className="flex-grow-1" />
+                <Button
+                  as={Link as any}
+                  to={`/familia/${family.idFamilies}`}
+                  variant="primary"
+                  className="mx-auto"
+                  style={{ width: "fit-content" }}
+                >
+                  Ver más
+                </Button>
+              </Card.Body>
+            </Card>
+          ))}
 
-              {/* Botón */}
-              <Button
-                as={Link as any}
-                to={`/familia/${family.idFamilies}`}
-                variant="primary"
-                className="mx-auto"
-                style={{ width: "fit-content" }}
-              >
-                Ver Familia
-              </Button>
-            </Card.Body>
-          </Card>
-        ))}
-
-        {/* Add New Card */}
         <div className="add-new-wrapper">
           <AddNewCard />
         </div>

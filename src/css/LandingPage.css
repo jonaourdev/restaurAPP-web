@@ -1,5 +1,10 @@
 .landingPageCSS {
-  background-color: rgb(22, 21, 21);
+  background: radial-gradient(
+    circle at center,
+    #1f1f1f 0%,
+    #161616 55%,
+    #0e0e0e 100%
+  );
   min-height: 100vh;
   display: flex;
   flex-direction: column;

@@ -1,4 +1,4 @@
 .navCSS {
-  background-color: rgb(255, 184, 0);
-  color: rgb(30, 30, 32);
+  background: linear-gradient(180deg, #ffdd77 0%, #ffc845 60%, #f4a90a 100%);
+  color: #1a1a1a;
 }

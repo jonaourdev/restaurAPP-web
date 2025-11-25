@@ -76,7 +76,10 @@ export default function TechnicalConceptDetail() {
           {family && (
             <p>
               Familia:{" "}
-              <Link to={`/familia/${family.idFamilies}`} className="text-decoration-none ">
+              <Link
+                to={`/familia/${family.idFamilies}`}
+                className="text-decoration-none "
+              >
                 {family.name}
               </Link>
             </p>
@@ -85,7 +88,11 @@ export default function TechnicalConceptDetail() {
 
         <div className="detail-content">
           {subConcept.image && (
-            <img src={subConcept.image} alt={subConcept.name} className="detail-image" />
+            <img
+              src={subConcept.image}
+              alt={subConcept.name}
+              className="detail-image"
+            />
           )}
 
           <p className="detail-description p-3">
@@ -94,15 +101,14 @@ export default function TechnicalConceptDetail() {
         </div>
 
         <div className="detail-footer p-3 d-flex gap-2">
-          <Link
-            to={routes.TechnicalConceptPage} 
-            className="btn btn-primary">
-            Volver a Familias
+          <Link to={routes.TechnicalConceptPage} className="btn btn-primary">
+            Volver
           </Link>
           {family && (
-            <Link 
-            to={`/familia/${family.idFamilies}`} 
-            className="btn btn-primary">
+            <Link
+              to={`/familia/${family.idFamilies}`}
+              className="btn btn-primary"
+            >
               Ver familia
             </Link>
           )}
