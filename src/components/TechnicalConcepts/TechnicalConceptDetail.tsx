@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { Container, Button } from "react-bootstrap";
+import { Container } from "react-bootstrap";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { dataHelper, type SubConcept, type Family } from "../../utils/Helper";
 import { routes } from "../../router";
+import "../../css/ConceptCards/TechnicalConceptDetail.css";
 
 export default function TechnicalConceptDetail() {
   const { id } = useParams<{ id?: string }>();
@@ -13,11 +14,7 @@ export default function TechnicalConceptDetail() {
   const [family, setFamily] = useState<Family | undefined>();
 
   useEffect(() => {
-    if (!id || Number.isNaN(conceptId)) {
-      setSubConcept(undefined);
-      setFamily(undefined);
-      return;
-    }
+    if (!id || Number.isNaN(conceptId)) return;
 
     const families = dataHelper.getTechnicalFamilies();
     let foundSub: SubConcept | undefined;
@@ -36,33 +33,18 @@ export default function TechnicalConceptDetail() {
     setFamily(foundFamily);
   }, [id, conceptId]);
 
-  if (!id || Number.isNaN(conceptId)) {
-    return (
-      <Container className="detail-container">
-        <div className="detail-card">
-          <div className="detail-content">
-            <h2>Concepto inválido</h2>
-            <p>ID de concepto inválido o no proporcionado.</p>
-            <Button variant="outline-primary" onClick={() => navigate(-1)}>
-              Volver
-            </Button>
-          </div>
-        </div>
-      </Container>
-    );
-  }
-
   if (!subConcept) {
     return (
       <Container className="detail-container">
         <div className="detail-card">
-          <div className="detail-content">
-            <h2>Concepto no encontrado</h2>
-            <p>No se encontró el subconcepto solicitado.</p>
-            <Button variant="outline-primary" onClick={() => navigate(-1)}>
-              Volver
-            </Button>
-          </div>
+          <h2>Concepto no encontrado</h2>
+          <p>No existe el concepto solicitado.</p>
+        </div>
+
+        <div className="detail-actions">
+          <button className="btn btn-primary" onClick={() => navigate(-1)}>
+            Volver
+          </button>
         </div>
       </Container>
     );
@@ -70,15 +52,17 @@ export default function TechnicalConceptDetail() {
 
   return (
     <Container className="detail-container">
-      <div className="article-card d-flex flex-column shadow-lg">
-        <div className="detail-header p-3">
+      <div className="detail-card shadow-sm">
+        {/* HEADER */}
+        <div className="detail-header">
           <h1>{subConcept.name}</h1>
+
           {family && (
             <p>
               Familia:{" "}
               <Link
                 to={`/familia/${family.idFamilies}`}
-                className="text-decoration-none "
+                className="fam-link text-decoration-none"
               >
                 {family.name}
               </Link>
@@ -86,33 +70,35 @@ export default function TechnicalConceptDetail() {
           )}
         </div>
 
-        <div className="detail-content">
-          {subConcept.image && (
-            <img
-              src={subConcept.image}
-              alt={subConcept.name}
-              className="detail-image"
-            />
-          )}
+        {/* IMAGEN */}
+        {subConcept.image && (
+          <img
+            src={subConcept.image}
+            alt={subConcept.name}
+            className="detail-image"
+          />
+        )}
 
-          <p className="detail-description p-3">
-            {subConcept.description ?? "Sin descripción disponible."}
-          </p>
-        </div>
+        {/* DESCRIPCIÓN */}
+        <p className="detail-description">
+          {subConcept.description ?? "Sin descripción disponible."}
+        </p>
+      </div>
 
-        <div className="detail-footer p-3 d-flex gap-2">
-          <Link to={routes.TechnicalConceptPage} className="btn btn-primary">
-            Volver
+      {/* BOTONES FUERA DE LA CARD, ABAJO DE LA PÁGINA */}
+      <div className="detail-actions">
+        <Link to={routes.TechnicalConceptPage} className="btn btn-primary">
+          Volver
+        </Link>
+
+        {family && (
+          <Link
+            to={`/familia/${family.idFamilies}`}
+            className="btn btn-outline-primary"
+          >
+            Ver familia
           </Link>
-          {family && (
-            <Link
-              to={`/familia/${family.idFamilies}`}
-              className="btn btn-primary"
-            >
-              Ver familia
-            </Link>
-          )}
-        </div>
+        )}
       </div>
     </Container>
   );

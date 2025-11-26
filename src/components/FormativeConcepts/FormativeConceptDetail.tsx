@@ -3,18 +3,20 @@ import { useParams, Link } from "react-router-dom";
 import { routes } from "../../router";
 import { dataHelper, type Formative } from "../../utils/Helper";
 
- 
 export default function FormativeConceptDetail() {
   const { id } = useParams<{ id?: string }>();
   const conceptId = Number(id);
 
-  // fallback if id is invalid
+  // fallback si id es inválido
   if (!id || Number.isNaN(conceptId)) {
     return (
       <Container className="py-5">
         <h2>Concepto no válido</h2>
         <p>ID de concepto inválido.</p>
-        <Link to={routes.FormativeConceptPage} className="btn btn-outline-primary">
+        <Link
+          to={routes.FormativeConceptPage}
+          className="btn btn-outline-primary"
+        >
           Volver
         </Link>
       </Container>
@@ -28,7 +30,10 @@ export default function FormativeConceptDetail() {
       <Container className="py-5">
         <h2>Concepto no encontrado</h2>
         <p>El concepto que buscas no existe.</p>
-        <Link to={routes.FormativeConceptPage} className="btn btn-outline-primary">
+        <Link
+          to={routes.FormativeConceptPage}
+          className="btn btn-outline-primary"
+        >
           Volver
         </Link>
       </Container>
@@ -44,13 +49,19 @@ export default function FormativeConceptDetail() {
 
           {concept.image && (
             <div className="my-3 text-center">
-              <img src={concept.image} alt={concept.name} style={{ maxWidth: "100%" }} />
+              <img
+                src={concept.image}
+                alt={concept.name}
+                style={{ maxWidth: "100%" }}
+              />
             </div>
           )}
 
           <div className="mt-3">
-            <Link to={routes.FormativeConceptPage} 
-            className="btn btn-outline-primary">
+            <Link
+              to={routes.FormativeConceptPage}
+              className="btn btn-outline-primary"
+            >
               Volver a conceptos
             </Link>
           </div>

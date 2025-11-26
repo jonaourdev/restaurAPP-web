@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Card, Stack, Button } from "react-bootstrap";
+import { Container, Row, Col, Card, Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import AddNewCard from "../ConceptCards/CardAgregar";
 import "../../css/ConceptCards/CardTecnica.css";
@@ -13,80 +13,82 @@ export default function TechnicalConcepts() {
   }, []);
 
   return (
-    <Stack gap={3}>
-      <h1 className="text-center mb-2 display-5 text-black">
-        Technical Concepts
+    <Container className="py-1">
+      <h1 className="text-center mb-3 display-5 text-black">
+        Conceptos Técnicos
       </h1>
-      <div className="border-bottom mb-3" style={{ borderColor: "#d1d1d1" }} />
-      <div className="technical-grid">
+
+      <div className="border-bottom mb-4" style={{ borderColor: "#d1d1d1" }} />
+
+      <Row className="g-4">
         {families
-          //  Filtra solo las familias con subConceptos reales
           .filter(
             (family) =>
               Array.isArray(family.subConcepto) &&
               family.subConcepto.length > 0 &&
-              family.subConcepto.some((s) => s.name) // asegura que no esté vacío
+              family.subConcepto.some((s) => s.name)
           )
           .map((family) => (
-            <Card
-              key={family.idFamilies}
-              className="article-card square-card d-flex flex-column shadow-lg"
-            >
-              {/* Imagen */}
-              {family.image ? (
-                <Card.Img
-                  variant="top"
-                  src={family.image}
-                  alt={family.name}
-                  className="concept-image"
-                />
-              ) : (
-                <div className="image-placeholder concept-image"></div>
-              )}
+            <Col key={family.idFamilies} xs={12} md={6} lg={4}>
+              <Card className="article-card h-100">
+                {/* Imagen */}
+                {family.image ? (
+                  <Card.Img
+                    variant="top"
+                    src={family.image}
+                    alt={family.name}
+                    className="concept-image"
+                  />
+                ) : (
+                  <div className="image-placeholder concept-image"></div>
+                )}
 
-              <Card.Body className="d-flex flex-column p-2">
-                {/* Nombres de Subconceptos */}
-                <Card.Title className="mb-2">
-                  <ul className="list-unstyled m-0">
-                    {family.subConcepto!.map((sub) => (
-                      <li key={sub.conceptId} className="py-1">
-                        <Link to={`/technical/concept/${sub.conceptId}`}>
-                          {sub.name}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </Card.Title>
+                <Card.Body className="d-flex flex-column">
+                  {/* Lista de subconceptos */}
+                  <Card.Title className="mb-2">
+                    <ul className="list-unstyled m-0">
+                      {family.subConcepto!.map((sub) => (
+                        <li key={sub.conceptId} className="py-1">
+                          <Link
+                            to={`/technical/concept/${sub.conceptId}`}
+                            className="article-title"
+                          >
+                            {sub.name}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </Card.Title>
 
-                {/* Familia */}
-                <Card.Subtitle className="mb-2">
-                  Familia: {family.name}
-                </Card.Subtitle>
+                  <Card.Subtitle className="article-subtitle mb-2">
+                    Familia: {family.name}
+                  </Card.Subtitle>
 
-                {/* Descripción (del primer subconcepto por defecto) */}
-                <Card.Text>
-                  {family.subConcepto && family.subConcepto[0].description
-                    ? family.subConcepto[0].description.slice(0, 80) + "..."
-                    : "Sin descripción disponible."}
-                </Card.Text>
-                <div className="flex-grow-1" />
-                <Button
-                  as={Link as any}
-                  to={`/familia/${family.idFamilies}`}
-                  variant="primary"
-                  className="mx-auto"
-                  style={{ width: "fit-content" }}
-                >
-                  Ver más
-                </Button>
-              </Card.Body>
-            </Card>
+                  <Card.Text className="article-description">
+                    {family.subConcepto?.[0]?.description
+                      ? family.subConcepto[0].description.slice(0, 120) + "..."
+                      : "Sin descripción disponible."}
+                  </Card.Text>
+
+                  <div className="mt-auto text-center">
+                    <Button
+                      as={Link as any}
+                      to={`/familia/${family.idFamilies}`}
+                      variant="primary"
+                    >
+                      Ver más
+                    </Button>
+                  </div>
+                </Card.Body>
+              </Card>
+            </Col>
           ))}
 
-        <div className="add-new-wrapper">
+        {/* Card agregar */}
+        <Col xs={12} md={6} lg={4}>
           <AddNewCard />
-        </div>
-      </div>
-    </Stack>
+        </Col>
+      </Row>
+    </Container>
   );
 }

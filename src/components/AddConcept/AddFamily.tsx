@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { Container, Form, Button } from "react-bootstrap";
+import { Form, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { dataHelper } from "../../utils/Helper";
 import { routes } from "../../router";
+import "../../css/AddConceptForm.css"; // <-- IMPORTACIÓN CORRECTA
 
 export default function AddFamilyPage() {
   const [name, setName] = useState("");
@@ -26,57 +27,74 @@ export default function AddFamilyPage() {
   }
 
   return (
-    <Container className="py-4">
-      <h2>Añadir familia técnica</h2>
-      <Form onSubmit={handleSubmit}>
-        <Form.Group className="mb-3" controlId="name">
-          <Form.Label>Nombre</Form.Label>
-          <Form.Control
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
-        </Form.Group>
+    <div className="add-form-container text-black">
+      <div className="add-form-card">
+        <h2 className="text-center mb-4">Añadir familia técnica</h2>
 
-        <Form.Group className="mb-3" controlId="descriptions">
-          <Form.Label>Descripción</Form.Label>
-          <Form.Control
-            as="textarea"
-            rows={3}
-            value={descriptions}
-            onChange={(e) => setDescriptions(e.target.value)}
-          />
-        </Form.Group>
+        <Form onSubmit={handleSubmit}>
+          {/* Nombre */}
+          <Form.Group className="mb-3" controlId="name">
+            <Form.Label>Nombre</Form.Label>
+            <Form.Control
+              type="text"
+              className="add-form-input"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+          </Form.Group>
 
-        <Form.Group className="mb-3" controlId="componentItemn">
-          <Form.Label>Componentes (ej: Base, Fuste, Capitel)</Form.Label>
-          <Form.Control
-            type="text"
-            value={componentItemn}
-            onChange={(e) => setComponentItemn(e.target.value)}
-          />
-        </Form.Group>
+          {/* Descripción */}
+          <Form.Group className="mb-3" controlId="descriptions">
+            <Form.Label>Descripción</Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={3}
+              className="add-form-input"
+              value={descriptions}
+              onChange={(e) => setDescriptions(e.target.value)}
+            />
+          </Form.Group>
 
-        <Form.Group className="mb-3" controlId="image">
-          <Form.Label>URL de imagen (opcional)</Form.Label>
-          <Form.Control
-            type="text"
-            placeholder="/assets/column.png"
-            value={image}
-            onChange={(e) => setImage(e.target.value)}
-          />
-        </Form.Group>
+          {/* Componentes */}
+          <Form.Group className="mb-3" controlId="componentItemn">
+            <Form.Label>Componentes (ej: Base, Fuste, Capitel)</Form.Label>
+            <Form.Control
+              type="text"
+              className="add-form-input"
+              value={componentItemn}
+              onChange={(e) => setComponentItemn(e.target.value)}
+            />
+          </Form.Group>
 
-        <div className="d-flex gap-2">
-          <Button variant="primary" type="submit">
-            Guardar
-          </Button>
-          <Button variant="secondary" onClick={() => navigate(-1)}>
-            Cancelar
-          </Button>
-        </div>
-      </Form>
-    </Container>
+          {/* Imagen */}
+          <Form.Group className="mb-3" controlId="image">
+            <Form.Label>URL de imagen (opcional)</Form.Label>
+            <Form.Control
+              type="text"
+              className="add-form-input"
+              placeholder="/assets/column.png"
+              value={image}
+              onChange={(e) => setImage(e.target.value)}
+            />
+          </Form.Group>
+
+          {/* Botones */}
+          <div className="d-flex gap-2 justify-content-center mt-4">
+            <Button type="submit" className="add-form-btn">
+              Guardar
+            </Button>
+
+            <Button
+              type="button"
+              className="add-form-btn-secondary"
+              onClick={() => navigate(-1)}
+            >
+              Cancelar
+            </Button>
+          </div>
+        </Form>
+      </div>
+    </div>
   );
 }

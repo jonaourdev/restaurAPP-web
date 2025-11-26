@@ -22,7 +22,7 @@
 }
 
 /* ========================================= */
-/*             TITULO (NEGRO)                */
+/*             TITULO                        */
 /* ========================================= */
 
 .article-card a.article-title {
@@ -33,7 +33,7 @@
 
   display: block;
   text-align: center;
-  margin-bottom: 0.6rem;
+  margin-bottom: 0rem;
 }
 
 .article-card a.article-title:hover {
