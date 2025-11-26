@@ -6,16 +6,15 @@ import { Link, useNavigate } from "react-router-dom";
 import { routes } from "./../router";
 import { API_BASE_URL } from "../utils/Helper";
 import Swal from "sweetalert2";
-import "../css/AuthForm.css"; 
+import "../css/AuthForm.css";
 
 interface LoginProps {
   email: string;
   password: string;
 }
 
-// CORRECCIÓN 1: Agregar el ID a la interfaz del usuario guardado
 interface CurrentUser {
-  id: number; // <--- NUEVO CAMPO
+  id: number;
   fullName: string;
   email: string;
   role: string;
@@ -25,6 +24,7 @@ const API_LOGIN_URL = `${API_BASE_URL}/usuarios/login`;
 
 function LoginForm() {
   const navigate = useNavigate();
+
   const [loginData, setLoginData] = useState<LoginProps>({
     email: "",
     password: "",
@@ -42,84 +42,76 @@ function LoginForm() {
     setIsLoading(true);
 
     setTimeout(async () => {
-  if (!loginData.email || !loginData.password) {
-    Swal.fire({
-      icon: "warning",
-      title: "Campos incompletos",
-      text: "Por favor ingresa tu email y contraseña.",
-      confirmButtonColor: "#3085d6",
-    });
-    setIsLoading(false);
-    return;
-  }
-
-  try {
-    const response = await fetch(API_LOGIN_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        correo: loginData.email,
-        password: loginData.password,
-      }),
-    });
-
-    if (!response.ok) {
-      let errorMessage = "Credenciales inválidas.";
-      try {
-        const errorData = await response.json();
-        if (errorData.message) errorMessage = errorData.message;
-      } catch (_) {}
-
-      Swal.fire({
-        icon: "error",
-        title: "Error de autenticación",
-        text: errorMessage,
-        confirmButtonColor: "#d33",
-      });
-
-      setIsLoading(false);
-      return;
-    }
-
-    const userData = await response.json();
-
-    const currentUser: CurrentUser = {
-      id: userData.idUsuario,
-      fullName: `${userData.nombres} ${userData.apellidos}`,
-      email: userData.correo,
-      role: userData.rol,
-    };
-
-    localStorage.setItem("currentUser", JSON.stringify(currentUser));
-
-    Swal.fire({
-      icon: "success",
-      title: "¡Inicio de sesión exitoso!",
-      text: `Bienvenido, ${currentUser.fullName}`,
-      confirmButtonColor: "#3085d6",
-    }).then(() => {
-      if (currentUser.role === "ADMIN") {
-        navigate(routes.adminDashboardPage);
-      } else {
-        navigate(routes.conceptPage);
+      // Validación de campos
+      if (!loginData.email || !loginData.password) {
+        Swal.fire({
+          icon: "warning",
+          title: "Campos incompletos",
+          text: "Por favor ingresa tu email y contraseña.",
+        });
+        setIsLoading(false);
+        return;
       }
-    });
-  } catch (error) {
-    Swal.fire({
-      icon: "error",
-      title: "Error de conexión",
-      text: "No se pudo conectar con el servidor.",
-      confirmButtonColor: "#d33",
-    });
-    setIsLoading(false);
-  }
-}, 400);
-      
-    } catch (error) {
-      console.error("Error de login:", error);
-      alert(error instanceof Error ? error.message : "Error al iniciar sesión.");
+
+      try {
+        const response = await fetch(API_LOGIN_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            correo: loginData.email,
+            password: loginData.password,
+          }),
+        });
+
+        if (!response.ok) {
+          let errorMessage = "Credenciales inválidas.";
+          try {
+            const errorData = await response.json();
+            if (errorData.message) errorMessage = errorData.message;
+          } catch (_) {}
+
+          Swal.fire({
+            icon: "error",
+            title: "Error de autenticación",
+            text: errorMessage,
+          });
+
+          setIsLoading(false);
+          return;
+        }
+
+        const userData = await response.json();
+
+        const currentUser: CurrentUser = {
+          id: userData.idUsuario,
+          fullName: `${userData.nombres} ${userData.apellidos}`,
+          email: userData.correo,
+          role: userData.rol,
+        };
+
+        localStorage.setItem("currentUser", JSON.stringify(currentUser));
+
+        Swal.fire({
+          icon: "success",
+          title: "¡Inicio de sesión exitoso!",
+          text: `Bienvenido, ${currentUser.fullName}`,
+        }).then(() => {
+          if (currentUser.role === "ADMIN") {
+            navigate(routes.adminDashboardPage);
+          } else {
+            navigate(routes.conceptPage);
+          }
+        });
+      } catch (error) {
+        Swal.fire({
+          icon: "error",
+          title: "Error de conexión",
+          text: "No se pudo conectar con el servidor.",
+        });
+      }
+
       setIsLoading(false);
-    }
+    }, 400);
   };
 
   return (
@@ -173,13 +165,7 @@ function LoginForm() {
                 >
                   {isLoading ? (
                     <>
-                      <Spinner
-                        as="span"
-                        animation="border"
-                        size="sm"
-                        role="status"
-                        aria-hidden="true"
-                      />
+                      <Spinner animation="border" size="sm" />
                       <span className="ms-2">Ingresando...</span>
                     </>
                   ) : (
