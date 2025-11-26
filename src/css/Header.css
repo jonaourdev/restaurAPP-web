@@ -1,10 +1,5 @@
 .parallax {
-  background: radial-gradient(
-    circle at center,
-    #1f1f1f 0%,
-    #161616 55%,
-    #0e0e0e 100%
-  );
+  background: whitesmoke;
   height: 100vh;
   background-attachment: fixed;
   background-position: center;
@@ -17,7 +12,7 @@
   top: 50%;
   transform: translateY(-50%);
   text-align: center;
-  color: white;
+  color: rgb(0, 0, 0);
 }
 
 .content h1 {

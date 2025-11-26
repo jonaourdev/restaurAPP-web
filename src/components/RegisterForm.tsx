@@ -1,20 +1,28 @@
-import { useState } from "react";
-import { Card, Form, Button, Container, Spinner } from "react-bootstrap";
+import React, { useState } from "react";
+import { Card, Form, Button, Container } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-import "../css/AuthForm.css"; // <-- IMPORTANTE
+import "../css/AuthForm.css";
+import { routes } from "../router";
 
-interface RegisterProps {
+interface FormData {
   fullName: string;
   email: string;
   password: string;
   confirmPassword: string;
 }
 
-function RegisterForm() {
+interface UserPayload {
+  nombres: string;
+  apellidos: string;
+  correo: string;
+  contrasenna: string;
+}
+
+const RegisterForm: React.FC = () => {
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState<RegisterProps>({
+  const [formData, setFormData] = useState<FormData>({
     fullName: "",
     email: "",
     password: "",
@@ -24,89 +32,111 @@ function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
   };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
 
-    setTimeout(() => {
-      if (
-        !formData.fullName ||
-        !formData.email ||
-        !formData.password ||
-        !formData.confirmPassword
-      ) {
-        Swal.fire({
-          icon: "warning",
-          title: "Campos incompletos",
-          text: "Por favor completa todos los campos.",
-          confirmButtonColor: "#3085d6",
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      if (formData.password !== formData.confirmPassword) {
-        Swal.fire({
-          icon: "error",
-          title: "Contraseñas no coinciden",
-          text: "Asegúrate de escribir la misma contraseña.",
-          confirmButtonColor: "#d33",
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      if (formData.password.length < 8) {
-        Swal.fire({
-          icon: "error",
-          title: "Contraseña demasiado corta",
-          text: "La contraseña debe tener al menos 8 caracteres.",
-          confirmButtonColor: "#d33",
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      const usersJSON = localStorage.getItem("users");
-      const users = usersJSON ? JSON.parse(usersJSON) : [];
-
-      const userExists = users.some(
-        (user: RegisterProps) => user.email === formData.email
-      );
-
-      if (userExists) {
-        Swal.fire({
-          icon: "warning",
-          title: "Correo registrado",
-          text: "Este correo ya tiene una cuenta asociada.",
-          confirmButtonColor: "#d33",
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      const newUser = {
-        fullName: formData.fullName,
-        email: formData.email,
-        password: formData.password,
-      };
-
-      users.push(newUser);
-      localStorage.setItem("users", JSON.stringify(users));
-
+    // Validación de campos vacíos
+    if (
+      !formData.fullName ||
+      !formData.email ||
+      !formData.password ||
+      !formData.confirmPassword
+    ) {
       Swal.fire({
-        icon: "success",
-        title: "Cuenta creada",
-        text: "Tu cuenta ha sido creada correctamente.",
-        confirmButtonColor: "#3085d6",
-      }).then(() => {
-        navigate("/loginPage");
+        icon: "warning",
+        title: "Campos incompletos",
+        text: "Por favor completa todos los campos.",
       });
-    }, 1500);
+      setIsLoading(false);
+      return;
+    }
+
+    // Contraseñas deben coincidir
+    if (formData.password !== formData.confirmPassword) {
+      Swal.fire({
+        icon: "error",
+        title: "Contraseñas no coinciden",
+        text: "Debes escribir la misma contraseña.",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    // Longitud mínima
+    if (formData.password.length < 8) {
+      Swal.fire({
+        icon: "error",
+        title: "Contraseña demasiado corta",
+        text: "Debe tener mínimo 8 caracteres.",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    // Separar nombres y apellidos
+    const [nombres, ...apArr] = formData.fullName.trim().split(" ");
+    const apellidos = apArr.length > 0 ? apArr.join(" ") : nombres;
+
+    const userPayload: UserPayload = {
+      nombres,
+      apellidos,
+      correo: formData.email,
+      contrasenna: formData.password,
+    };
+
+    // Envío real al backend (FT67)
+    fetch("http://localhost:8090/api/v1/usuarios", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(userPayload),
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          try {
+            const errorData = await response.json();
+            Swal.fire({
+              icon: "error",
+              title: "Error al registrar",
+              text:
+                errorData.message ||
+                `Error en el servidor. Código ${response.status}`,
+            });
+          } catch {
+            Swal.fire({
+              icon: "error",
+              title: "Error desconocido",
+              text: "El servidor no respondió correctamente.",
+            });
+          }
+          throw new Error();
+        }
+        return response.json();
+      })
+      .then(() => {
+        Swal.fire({
+          icon: "success",
+          title: "Cuenta creada",
+          text: "Serás redirigido al inicio de sesión.",
+        }).then(() => navigate(routes.loginPage));
+      })
+      .catch((err) => {
+        console.error("Error de registro:", err);
+        Swal.fire({
+          icon: "error",
+          title: "Error de conexión",
+          text: "No se pudo conectar al servidor.",
+        });
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   };
 
   return (
@@ -184,20 +214,13 @@ function RegisterForm() {
                   className="auth-submit-btn"
                   disabled={isLoading}
                 >
-                  {isLoading ? (
-                    <>
-                      <Spinner as="span" animation="border" size="sm" />
-                      <span className="ms-2">Creando cuenta...</span>
-                    </>
-                  ) : (
-                    "Crear cuenta"
-                  )}
+                  {isLoading ? "Creando cuenta..." : "Crear cuenta"}
                 </Button>
               </div>
 
               <Card.Text className="text-center text-muted mt-4 mb-0">
                 ¿Ya tienes cuenta?{" "}
-                <Link to="/loginPage" className="auth-link">
+                <Link to={routes.loginPage} className="auth-link">
                   Inicia sesión
                 </Link>
                 .
@@ -208,6 +231,6 @@ function RegisterForm() {
       </Card>
     </Container>
   );
-}
+};
 
 export default RegisterForm;
