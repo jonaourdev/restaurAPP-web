@@ -1,4 +1,4 @@
-import {createBrowserRouter , Navigate} from "react-router-dom";
+import {createBrowserRouter, Navigate} from "react-router-dom";
 import Layout from "./components/Layout";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
@@ -15,7 +15,7 @@ import TechnicalConceptDetailPage from "./pages/TechnicalConceptDetailPage";
 import AddChoicePage from "./pages/AddChoicePage";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import AdminLayout from "./components/Admin/AdminLayout";
-import AdminConcepts from "./components/Admin/adminConcept";
+import AdminConceptPage from "./pages/admin/AdminConceptPage";
 
 export const routes = {
   landing: "/",
@@ -30,13 +30,11 @@ export const routes = {
   AddChoice: "/AddChoicePage",
   addFormative: "/add/formative",
   addFamily: "/add/family",
-  addTechnical: "/add/technical",   
+  addTechnical: "/add/technical",
 
   adminDashboardPage: "/admin/dashboard",
   adminLayout: "/admin",
-  AdminConceptPage: "/admin/concepts",
-
-
+  AdminConcept: "/admin/concepts",
 } as const;
 
 const router = createBrowserRouter([
@@ -50,31 +48,45 @@ const router = createBrowserRouter([
       {path: routes.loginPage, element: <LoginPage></LoginPage>},
       {path: routes.registerPage, element: <RegisterPage></RegisterPage>},
       {path: routes.conceptPage, element: <ConceptPage></ConceptPage>},
-      {path: routes.FormativeConceptPage, element: <FormativeConceptPage></FormativeConceptPage>},
-      {path: routes.TechnicalConceptPage, element: <TechnicalConceptPage></TechnicalConceptPage>},
-      {path: routes.conceptDetail, element: <FormativeConceptDetail></FormativeConceptDetail>},
-      {path: routes.familyDetail, element: <FamiliyDetailPage></FamiliyDetailPage>},
+      {
+        path: routes.FormativeConceptPage,
+        element: <FormativeConceptPage></FormativeConceptPage>,
+      },
+      {
+        path: routes.TechnicalConceptPage,
+        element: <TechnicalConceptPage></TechnicalConceptPage>,
+      },
+      {
+        path: routes.conceptDetail,
+        element: <FormativeConceptDetail></FormativeConceptDetail>,
+      },
+      {
+        path: routes.familyDetail,
+        element: <FamiliyDetailPage></FamiliyDetailPage>,
+      },
       {path: routes.AddChoice, element: <AddChoicePage></AddChoicePage>},
-      {path: routes.addFormative, element: <AddFormativePage /> },
-      {path: routes.addFamily, element: <AddFamilyPage /> },
-      {path: routes.addTechnical, element: <AddTechnicalPage /> },
-      {path: routes.technicalConceptDetailPage, element: <TechnicalConceptDetailPage></TechnicalConceptDetailPage>},
-   
+      {path: routes.addFormative, element: <AddFormativePage />},
+      {path: routes.addFamily, element: <AddFamilyPage />},
+      {path: routes.addTechnical, element: <AddTechnicalPage />},
+      {
+        path: routes.technicalConceptDetailPage,
+        element: <TechnicalConceptDetailPage></TechnicalConceptDetailPage>,
+      },
 
       // {path: "*", element: <NotFound></NotFound>},
     ],
   },
 
   {
-      path: routes.adminLayout,
-      element: <AdminLayout />,
-      children: [
-          {index: true, element: <Navigate to="dashboard" replace /> },
-          {path: routes.adminDashboardPage, element: <AdminDashboardPage />},
-          {path: routes.AdminConceptPage, element: <AdminConcepts />},
-          // Rutas placeholder para los otros botones del sidebar
-      ]
-  }
+    path: routes.adminLayout,
+    element: <AdminLayout />,
+    children: [
+      {index: true, element: <Navigate to="dashboard" replace />},
+      {path: routes.adminDashboardPage, element: <AdminDashboardPage />},
+      {path: routes.AdminConcept, element: <AdminConceptPage />},
+      // Rutas placeholder para los otros botones del sidebar
+    ],
+  },
 ]);
 
 export default router;

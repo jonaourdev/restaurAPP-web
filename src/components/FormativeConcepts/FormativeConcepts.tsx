@@ -1,14 +1,24 @@
-import { useEffect, useState } from "react";
-import { Container, Card } from "react-bootstrap";
-import { Link } from "react-router-dom";
-import { dataHelper, type Formative } from "../../utils/Helper";
+import {useEffect, useState} from "react";
+import {Container, Card} from "react-bootstrap";
+import {Link} from "react-router-dom";
+import {dataHelper, type Formative} from "../../utils/Helper";
 import AddNewCard from "../ConceptCards/CardAgregar";
 
 export default function FormativeConcepts() {
   const [concepts, setConcepts] = useState<Formative[]>([]);
 
   useEffect(() => {
-    setConcepts(dataHelper.getFormativeConcepts());
+    async function fetchConcepts() {
+      const realConcepts = await dataHelper.getRealFormativos();
+      const mapped = realConcepts.map((dto) => ({
+        conceptId: dto.idConceptoFormativo,
+        name: dto.nombreFormativo,
+        description: dto.descripcionFormativo,
+      }));
+      setConcepts(mapped);
+    }
+
+    fetchConcepts();
   }, []);
 
   return (
@@ -18,13 +28,15 @@ export default function FormativeConcepts() {
       <div className="row g-4">
         {concepts.map((concept) => (
           <div key={concept.conceptId} className="col-12 col-md-6 col-lg-4">
-            <Link 
+            <Link
               to={`/concepto/${concept.conceptId}`}
               className="text-decoration-none"
             >
               <Card className="h-100 shadow-sm hover-shadow">
                 <Card.Body>
-                  <Card.Title className="text-center mb-3">{concept.name}</Card.Title>
+                  <Card.Title className="text-center mb-3">
+                    {concept.name}
+                  </Card.Title>
                   <Card.Text className="text-muted">
                     {concept.description.substring(0, 150)}...
                   </Card.Text>

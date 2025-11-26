@@ -1,15 +1,25 @@
-import { useEffect, useState } from "react";
-import { Container, Card } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import {useEffect, useState} from "react";
+import {Container, Card} from "react-bootstrap";
+import {Link} from "react-router-dom";
 import AddNewCard from "../ConceptCards/CardAgregar";
 import "../../css/ConceptCards/CardTecnica.css";
-import { dataHelper, type Family } from "../../utils/Helper";
+import {dataHelper, type Family} from "../../utils/Helper";
 
 export default function TechnicalConcepts() {
   const [families, setFamilies] = useState<Family[]>([]);
 
   useEffect(() => {
-    setFamilies(dataHelper.getTechnicalFamilies());
+    async function fetchFamilias() {
+      const realFamilias = await dataHelper.getRealFamilias();
+      const mapped = realFamilias.map((dto) => ({
+        idFamilies: dto.idFamilia,
+        name: dto.nombreFamilia,
+        description: dto.descripcionFamilia,
+      }));
+      setFamilies(mapped);
+    }
+
+    fetchFamilias();
   }, []);
 
   return (
@@ -18,7 +28,10 @@ export default function TechnicalConcepts() {
 
       <div className="technical-grid">
         {families.map((family) => (
-          <Card key={family.idFamilies} className="article-card d-flex flex-column shadow-lg">
+          <Card
+            key={family.idFamilies}
+            className="article-card d-flex flex-column shadow-lg"
+          >
             <Card.Body className="d-flex align-items-center">
               <div className="card-left flex-grow-1">
                 <h5 className="mb-3">Familia: {family.name}</h5>
@@ -40,7 +53,10 @@ export default function TechnicalConcepts() {
                 )}
 
                 <div className="mt-3">
-                  <Link to={`/familia/${family.idFamilies}`} className="btn btn-outline-primary">
+                  <Link
+                    to={`/familia/${family.idFamilies}`}
+                    className="btn btn-outline-primary"
+                  >
                     Ver Familia
                   </Link>
                 </div>
@@ -48,7 +64,11 @@ export default function TechnicalConcepts() {
 
               <div className="card-right">
                 {family.image ? (
-                  <img src={family.image} alt={family.name} className="concept-image" />
+                  <img
+                    src={family.image}
+                    alt={family.name}
+                    className="concept-image"
+                  />
                 ) : (
                   <div className="image-placeholder" />
                 )}

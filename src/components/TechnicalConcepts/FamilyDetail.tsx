@@ -1,27 +1,73 @@
-import { useEffect, useState } from "react";
-import { Container, Card } from "react-bootstrap";
-import { useParams, Link } from "react-router-dom";
-import { dataHelper, type Family } from "../../utils/Helper";
-import { routes } from "../../router";
+import {useEffect, useState} from "react";
+import {Container, Card} from "react-bootstrap";
+import {useParams, Link} from "react-router-dom";
+import {dataHelper, type Family} from "../../utils/Helper";
+import {routes} from "../../router";
 
 export default function FamilyDetail() {
-  const { id } = useParams<{ id?: string }>();
+  const {id} = useParams<{id?: string}>();
+  const familyId = Number(id);
+
   const [family, setFamily] = useState<Family | undefined>();
+  const [concepts, setConcepts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (id) {
-      const familyData = dataHelper.getFamilyById(Number(id));
-      setFamily(familyData);
+    async function fetchData() {
+      if (!familyId || Number.isNaN(familyId)) {
+        setLoading(false);
+        return;
+      }
+
+      //Cargar familia
+      const realFamilies = await dataHelper.getRealFamilias();
+      const fam = realFamilies.find((f) => f.idFamilia === familyId);
+
+      if (!fam) {
+        setFamily(undefined);
+        setLoading(false);
+        return;
+      }
+
+      //Mapear DTO de familia
+      const mappedFamily: Family = {
+        idFamilies: fam.idFamilia,
+        name: fam.nombreFamilia,
+        descriptions: fam.descripcionFamilia,
+        componentItemn: "",
+        image: "",
+        subConcepto: [],
+      };
+
+      //Cargar conceptos tecnicos asociado a la familia
+      const realTecnicos = await dataHelper.getRealTecnicos();
+      const filteredTecnicos = realTecnicos.filter(
+        (t) => t.idFamilia === familyId
+      );
+
+      //Mapear los tecnico a subConcepto
+
+      mappedFamily.subConcepto = filteredTecnicos.map((t) => ({
+        conceptId: t.idTecnico,
+        familyId: familyId,
+        name: t.nombreTecnico,
+      }));
+
+      setFamily(mappedFamily);
+      setLoading(false);
     }
-  }, [id]);
+
+    fetchData();
+  }, [familyId]);
 
   if (!family) {
     return (
       <Container className="py-5">
         <h2>Familia no encontrada</h2>
-        <Link 
+        <Link
           to={routes.TechnicalConceptPage}
-          className="btn btn-outline-primary">
+          className="btn btn-outline-primary"
+        >
           Volver
         </Link>
       </Container>
@@ -33,22 +79,22 @@ export default function FamilyDetail() {
       <Card className="article-card d-flex flex-column shadow-lg">
         <Card.Body>
           <h1 className="text-center mb-4">{family.name}</h1>
-          
+
           <div className="row">
             <div className="col-md-6">
               <h3>Descripción</h3>
               <p>{family.descriptions}</p>
-              
+
               <h3>Componentes</h3>
               <p>{family.componentItemn}</p>
             </div>
-            
+
             <div className="col-md-6">
               {family.image && (
-                <img 
-                  src={family.image} 
+                <img
+                  src={family.image}
                   alt={family.name}
-                  className="img-fluid rounded shadow" 
+                  className="img-fluid rounded shadow"
                 />
               )}
             </div>
@@ -73,8 +119,8 @@ export default function FamilyDetail() {
           )}
 
           <div className="mt-4 text-center">
-            <Link 
-              to={routes.TechnicalConceptPage} 
+            <Link
+              to={routes.TechnicalConceptPage}
               className="btn btn-outline-primary"
             >
               Volver a Familias
