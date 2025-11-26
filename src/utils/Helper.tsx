@@ -5,17 +5,21 @@ export interface FamiliaDTO {
     idFamilia: number;
     nombreFamilia: string;
     descripcionFamilia: string;
+    componentesFamilia?: string;
 }
 
 export interface ConceptoTecnicoDTO {
     idTecnico: number;
     nombreTecnico: string;
+    descripcionTecnico: string;
     estado: string;
+    idFamilia: number;
 }
 
 export interface ConceptoFormativoDTO {
     idFormativo: number;
     nombreFormativo: string;
+    descripcionFormativo: string;
     estado: string;
 }
 
