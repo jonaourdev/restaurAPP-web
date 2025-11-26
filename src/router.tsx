@@ -15,7 +15,7 @@ import TechnicalConceptDetailPage from "./pages/TechnicalConceptDetailPage";
 import AddChoicePage from "./pages/AddChoicePage";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import AdminLayout from "./components/Admin/AdminLayout";
-import AdminConcepts from "./components/Admin/adminConcept";
+import AdminConceptPage from "./pages/admin/AdminConceptPage";
 
 export const routes = {
   landing: "/",
@@ -34,7 +34,7 @@ export const routes = {
 
   adminDashboardPage: "/admin/dashboard",
   adminLayout: "/admin",
-  AdminConceptPage: "/admin/concepts",
+  AdminConcept: "/admin/concepts",
 
 
 } as const;
@@ -71,7 +71,7 @@ const router = createBrowserRouter([
       children: [
           {index: true, element: <Navigate to="dashboard" replace /> },
           {path: routes.adminDashboardPage, element: <AdminDashboardPage />},
-          {path: routes.AdminConceptPage, element: <AdminConcepts />},
+          {path: routes.AdminConcept, element: <AdminConceptPage />},
           // Rutas placeholder para los otros botones del sidebar
       ]
   }
