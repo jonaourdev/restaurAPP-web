@@ -52,11 +52,6 @@ export default function FormativeConcepts() {
                   {concept.name}
                 </Card.Title>
 
-                {/* SUBTÍTULO */}
-                <Card.Subtitle className="article-subtitle">
-                  Concepto formativo
-                </Card.Subtitle>
-
                 {/* DESCRIPCIÓN */}
                 <Card.Text className="article-description">
                   {concept.description.substring(0, 120)}...
