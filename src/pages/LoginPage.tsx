@@ -1,14 +1,15 @@
+import "../css/AuthForm.css";
+import TopBar from "../components/TopBar";
 import LoginForm from "../components/LoginForm";
-import {Container} from "react-bootstrap";
+import "../css/Header.css";
 
-function LoginPage() {
+export default function LoginPage() {
   return (
     <>
-      <Container className="min-vh-100 d-flex align-items-center justify-content-center">
-        <LoginForm></LoginForm>
-      </Container>
+      <TopBar />
+      <div className="auth-page-background">
+        <LoginForm />
+      </div>
     </>
   );
 }
-
-export default LoginPage;

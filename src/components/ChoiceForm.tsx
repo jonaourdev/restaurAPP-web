@@ -1,39 +1,46 @@
 import { Container, Row, Col, Card } from "react-bootstrap";
 import { Link } from "react-router-dom";
+import "../css/ChoiceForm.css";
 
 export default function AddChoice() {
   return (
-    <Container className="py-5">
-      <h1 className="text-center mb-4">Crear nuevo</h1>
+    <Container className="choice-container">
+      <h1 className="choice-title">Crear nuevo</h1>
 
-      <Row className="g-4 justify-content-center">
-        <Col xs={12} md={4}>
-          <Card as={Link} to="/add/formative" className="text-center text-decoration-none p-4">
-            <Card.Body>
-              <Card.Title>Concepto Formativo</Card.Title>
-              <Card.Text>Agregar un nuevo concepto formativo</Card.Text>
-            </Card.Body>
-          </Card>
-        </Col>
+      <div className="choice-grid">
+        <Card as={Link} to="/add/formative" className="choice-card">
+          <Card.Body>
+            <Card.Title className="choice-card-title">
+              Concepto Formativo
+            </Card.Title>
+            <Card.Text className="choice-card-text">
+              Agregar un nuevo concepto formativo
+            </Card.Text>
+          </Card.Body>
+        </Card>
 
-        <Col xs={12} md={4}>
-          <Card as={Link} to="/add/family" className="text-center text-decoration-none p-4">
-            <Card.Body>
-              <Card.Title>Familia Técnica</Card.Title>
-              <Card.Text>Agregar una nueva familia técnica</Card.Text>
-            </Card.Body>
-          </Card>
-        </Col>
+        <Card as={Link} to="/add/family" className="choice-card">
+          <Card.Body>
+            <Card.Title className="choice-card-title">
+              Familia Técnica
+            </Card.Title>
+            <Card.Text className="choice-card-text">
+              Agregar una nueva familia técnica
+            </Card.Text>
+          </Card.Body>
+        </Card>
 
-        <Col xs={12} md={4}>
-          <Card as={Link} to="/add/technical" className="text-center text-decoration-none p-4">
-            <Card.Body>
-              <Card.Title>Subconcepto Técnico</Card.Title>
-              <Card.Text>Agregar un subconcepto (pertenece a una familia)</Card.Text>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
+        <Card as={Link} to="/add/technical" className="choice-card">
+          <Card.Body>
+            <Card.Title className="choice-card-title">
+              Subconcepto Técnico
+            </Card.Title>
+            <Card.Text className="choice-card-text">
+              Agregar un subconcepto (pertenece a una familia)
+            </Card.Text>
+          </Card.Body>
+        </Card>
+      </div>
     </Container>
   );
 }

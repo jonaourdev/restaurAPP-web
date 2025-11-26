@@ -13,17 +13,15 @@ function AppNavbar() {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("currentUser"); // Leer el usuario con sesión iniciada
+    const storedUser = localStorage.getItem("currentUser");
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
-  }, [navigate]); // Se ejecuta cada vez que cambia la navegación
+  }, [navigate]);
 
   const handleLogout = () => {
-    localStorage.removeItem("currentUser"); // Borrar solo la sesión actual
+    localStorage.removeItem("currentUser");
     setUser(null);
-    // Usamos window.location.href para forzar una recarga completa de la página.
-    // Esto asegura que el Navbar se actualice al estado "no logeado".
     window.location.href = "/";
   };
 
@@ -38,8 +36,8 @@ function AppNavbar() {
               width="30"
               height="30"
               className="d-inline-block align-top"
-            />
-            RestaurAPP
+            />{" "}
+            RestaurAPP{" "}
             <img
               alt=""
               src="../src/assets/logo.png"
@@ -48,7 +46,9 @@ function AppNavbar() {
               className="d-inline-block align-top"
             />
           </Navbar.Brand>
+
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
+
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="me-auto">
               <Nav.Link as={Link} to={"/"}>
@@ -58,6 +58,7 @@ function AppNavbar() {
                 Conceptos
               </Nav.Link>
             </Nav>
+
             {user ? (
               // Vista para usuario logeado
               <Nav>

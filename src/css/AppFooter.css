@@ -1,3 +1,5 @@
 .footerCSS {
-  background-color: rgb(255, 184, 0);
+  background: rgb(46, 46, 46);
+  color: #ffffff;
+  padding: 1.5rem 0;
 }

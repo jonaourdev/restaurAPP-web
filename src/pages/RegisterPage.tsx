@@ -1,12 +1,14 @@
 import RegisterForm from "../components/RegisterForm";
-import {Container} from "react-bootstrap";
+import TopBar from "../components/TopBar";
+import "../css/AuthForm.css";
 
 function RegisterPage() {
   return (
     <>
-      <Container className="min-vh-100 d-flex align-items-center justify-content-center">
-        <RegisterForm></RegisterForm>
-      </Container>
+      <TopBar />
+      <div className="auth-page-background">
+        <RegisterForm />
+      </div>
     </>
   );
 }

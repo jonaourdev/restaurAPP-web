@@ -1,8 +1,9 @@
-import {useEffect, useState} from "react";
-import {Container, Card} from "react-bootstrap";
-import {useParams, Link} from "react-router-dom";
-import {dataHelper, type Family} from "../../utils/Helper";
-import {routes} from "../../router";
+import { useEffect, useState } from "react";
+import { Container } from "react-bootstrap";
+import { useParams, Link } from "react-router-dom";
+import { dataHelper, type Family } from "../../utils/Helper";
+import { routes } from "../../router";
+import "../../css/ConceptCards/TechnicalConceptDetail.css";
 
 export default function FamilyDetail() {
   const {id} = useParams<{id?: string}>();
@@ -62,72 +63,90 @@ export default function FamilyDetail() {
 
   if (!family) {
     return (
-      <Container className="py-5">
-        <h2>Familia no encontrada</h2>
-        <Link
-          to={routes.TechnicalConceptPage}
-          className="btn btn-outline-primary"
-        >
-          Volver
-        </Link>
+      <Container className="detail-container">
+        <div className="detail-card">
+          <div className="detail-content">
+            <h2>Familia no encontrada</h2>
+            <p>No fue posible encontrar la familia solicitada.</p>
+
+            <div className="detail-actions">
+              <Link
+                to={routes.TechnicalConceptPage}
+                className="btn btn-primary"
+              >
+                Volver
+              </Link>
+            </div>
+          </div>
+        </div>
       </Container>
     );
   }
 
   return (
-    <Container className="py-5">
-      <Card className="article-card d-flex flex-column shadow-lg">
-        <Card.Body>
-          <h1 className="text-center mb-4">{family.name}</h1>
-
-          <div className="row">
-            <div className="col-md-6">
-              <h3>Descripción</h3>
-              <p>{family.descriptions}</p>
-
-              <h3>Componentes</h3>
-              <p>{family.componentItemn}</p>
-            </div>
-
-            <div className="col-md-6">
-              {family.image && (
-                <img
-                  src={family.image}
-                  alt={family.name}
-                  className="img-fluid rounded shadow"
-                />
-              )}
-            </div>
+    <>
+      {/* CONTENEDOR PRINCIPAL */}
+      <Container className="detail-container">
+        {/* TARJETA */}
+        <div className="detail-card">
+          {/* HEADER */}
+          <div className="detail-header">
+            <h1>{family.name}</h1>
+            <p className="fam-link">ID: {family.idFamilies}</p>
           </div>
 
+          {/* IMAGEN */}
+          {family.image && (
+            <img
+              src={family.image}
+              alt={family.name}
+              className="detail-image"
+            />
+          )}
+
+          {/* DESCRIPCIÓN PRINCIPAL */}
+          <div className="detail-description">
+            <strong>Descripción:</strong>
+            <p className="mt-2">
+              {family.descriptions || "Sin descripción disponible."}
+            </p>
+
+            <br />
+
+            <strong>Componentes:</strong>
+            <p className="mt-2">
+              {family.componentItemn || "Sin componentes definidos."}
+            </p>
+          </div>
+
+          {/* SUBCONCEPTOS */}
           {family.subConcepto && family.subConcepto.length > 0 && (
-            <div className="mt-4">
+            <div className="mt-4 text-black">
               <h3>Subconceptos</h3>
-              <div className="row g-4">
+
+              <div className="row g-3 mt-1">
                 {family.subConcepto.map((sub) => (
                   <div key={sub.conceptId} className="col-md-6">
-                    <Card className="article-card">
-                      <Card.Body>
-                        <Card.Title>{sub.name}</Card.Title>
-                        <Card.Text>{sub.description}</Card.Text>
-                      </Card.Body>
-                    </Card>
+                    <div className="detail-card" style={{ padding: "1rem" }}>
+                      <h5 className="mb-2">{sub.name}</h5>
+                      <p className="m-0">
+                        {sub.description || "Sin descripción."}
+                      </p>
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
           )}
+        </div>
+      </Container>
 
-          <div className="mt-4 text-center">
-            <Link
-              to={routes.TechnicalConceptPage}
-              className="btn btn-outline-primary"
-            >
-              Volver a Familias
-            </Link>
-          </div>
-        </Card.Body>
-      </Card>
-    </Container>
+      {/* BOTONES AL FINAL DE LA PÁGINA */}
+      <div className="detail-actions">
+        <Link to={routes.TechnicalConceptPage} className="btn btn-primary">
+          Volver
+        </Link>
+      </div>
+    </>
   );
 }

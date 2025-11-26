@@ -1,4 +1,78 @@
 .navCSS {
-  background-color: rgb(255, 184, 0);
-  color: rgb(30, 30, 32);
+  background: whitesmoke !important;
+
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
+
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.navCSS .navbar-brand {
+  font-weight: 700;
+  color: #1a1a1a !important;
+}
+.navCSS .nav-link {
+  font-weight: 600;
+  color: #1a1a1a !important;
+  border-bottom: none;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.navCSS .nav-link:hover {
+  color: #0056d2 !important;
+  text-decoration: none !important;
+}
+
+.navCSS .navbar-nav .nav-link.active,
+.navCSS .navbar-nav .show > .nav-link {
+  color: #0056d2 !important;
+  font-weight: 700;
+  text-decoration: none !important;
+  border-bottom: none !important;
+}
+
+/* ===================================== */
+/*                SEARCH BAR             */
+/* ===================================== */
+
+.navCSS input.form-control {
+  border-radius: 12px;
+  border: 1px solid #c9c9c9;
+  background-color: #ffffff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.navCSS input.form-control:focus {
+  border-color: #f4b731;
+  box-shadow: 0 0 0 0.2rem rgba(244, 183, 49, 0.35);
+}
+
+/* ===================================== */
+/*               SEARCH BUTTON           */
+/* ===================================== */
+
+.navCSS .btn-dark {
+  background-color: #1a1a1a;
+  border-radius: 10px;
+  font-weight: 600;
+  border: none;
+}
+
+.navCSS .dropdown-menu {
+  border-radius: 12px;
+  background-color: #ffffff;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+  padding: 0.5rem;
+}
+
+.navCSS .dropdown-item.active,
+.navCSS .dropdown-item:active {
+  background-color: transparent !important;
+  color: #0056d2 !important;
+  font-weight: 600;
+}
+
+.navCSS .dropdown-item:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 6px;
 }

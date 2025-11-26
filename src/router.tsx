@@ -1,15 +1,19 @@
 import {createBrowserRouter, Navigate} from "react-router-dom";
 import Layout from "./components/Layout";
+
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+
 import ConceptPage from "./pages/ConceptPage";
 import FormativeConceptPage from "./pages/FormativeConceptPage";
 import TechnicalConceptPage from "./pages/TechnicalConceptPage";
+
 import FamiliyDetailPage from "./pages/FamiliyDetailPage";
 import AddFormativePage from "./pages/AddFormativePage";
 import AddFamilyPage from "./pages/AddFamilyPage";
 import AddTechnicalPage from "./pages/AddTechnicalPage";
+
 import FormativeConceptDetail from "./components/FormativeConcepts/FormativeConceptDetail";
 import TechnicalConceptDetailPage from "./pages/TechnicalConceptDetailPage";
 import AddChoicePage from "./pages/AddChoicePage";
@@ -38,12 +42,12 @@ export const routes = {
 } as const;
 
 const router = createBrowserRouter([
-  //1) caída sobre landingPage.tsx
-  {path: "/", element: <LandingPage></LandingPage>},
+  { path: routes.landing, element: <LandingPage /> },
+  { path: routes.loginPage, element: <LoginPage /> },
+  { path: routes.registerPage, element: <RegisterPage /> },
 
-  //2) carga con Layout.tsx
   {
-    element: <Layout></Layout>,
+    element: <Layout />,
     children: [
       {path: routes.loginPage, element: <LoginPage></LoginPage>},
       {path: routes.registerPage, element: <RegisterPage></RegisterPage>},

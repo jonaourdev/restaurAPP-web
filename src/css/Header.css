@@ -1,5 +1,5 @@
 .parallax {
-  background-color: rgb(17, 16, 16);
+  background: whitesmoke;
   height: 100vh;
   background-attachment: fixed;
   background-position: center;
@@ -12,7 +12,7 @@
   top: 50%;
   transform: translateY(-50%);
   text-align: center;
-  color: white;
+  color: rgb(0, 0, 0);
 }
 
 .content h1 {

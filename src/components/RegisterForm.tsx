@@ -1,4 +1,8 @@
-// src/components/RegisterForm.tsx
+import { useState } from "react";
+import { Card, Form, Button, Container, Spinner } from "react-bootstrap";
+import { Link, useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
+import "../css/AuthForm.css"; // <-- IMPORTANTE
 
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -29,6 +33,7 @@ const RegisterForm: React.FC = () => {
     password: "",
     confirmPassword: "",
   });
+
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -42,158 +47,207 @@ const RegisterForm: React.FC = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    // --- 1. VALIDACIONES DE FRONTEND ---
-    if (
+    setTimeout(() => {
+      if (
         !formData.fullName ||
         !formData.email ||
         !formData.password ||
         !formData.confirmPassword
-    ) {
-        alert("Por favor completa todos los campos.");
+      ) {
+        Swal.fire({
+          icon: "warning",
+          title: "Campos incompletos",
+          text: "Por favor completa todos los campos.",
+          confirmButtonColor: "#3085d6",
+        });
         setIsLoading(false);
         return;
     }
 
-    if (formData.password !== formData.confirmPassword) {
-        alert("Las contraseñas no coinciden.");
+      if (formData.password !== formData.confirmPassword) {
+        Swal.fire({
+          icon: "error",
+          title: "Contraseñas no coinciden",
+          text: "Asegúrate de escribir la misma contraseña.",
+          confirmButtonColor: "#d33",
+        });
         setIsLoading(false);
         return;
     }
 
     if (formData.password.length < 8) {
-        alert("La contraseña debe tener al menos 8 caracteres.");
-        setIsLoading(false);
-        return;
+  Swal.fire({
+    icon: "error",
+    title: "Contraseña demasiado corta",
+    text: "La contraseña debe tener al menos 8 caracteres.",
+    confirmButtonColor: "#d33",
+  });
+  setIsLoading(false);
+  return;
+}
+
+// --- 2. PREPARAR DATOS PARA EL BACKEND ---
+// Dividir el nombre completo en Nombres y Apellidos
+const [nombres, ...apellidosArray] = formData.fullName.trim().split(" ");
+
+const apellidos =
+  apellidosArray.length > 0 ? apellidosArray.join(" ") : nombres;
+
+const userPayload: UserPayload = {
+  nombres: nombres,
+  apellidos: apellidos,
+  correo: formData.email,
+  contrasenna: formData.password,
+};
+
+// --- 3. LLAMADA REAL AL BACKEND ---
+fetch("http://localhost:8090/api/v1/usuarios", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify(userPayload),
+})
+  .then(async (response) => {
+    if (!response.ok) {
+      try {
+        const errorData = await response.json();
+        Swal.fire({
+          icon: "error",
+          title: "Error al registrar",
+          text:
+            errorData.message ||
+            `Error en el servidor. Código ${response.status}`,
+          confirmButtonColor: "#d33",
+        });
+      } catch {
+        Swal.fire({
+          icon: "error",
+          title: "Error desconocido",
+          text: "No se pudo procesar la respuesta del servidor.",
+          confirmButtonColor: "#d33",
+        });
+      }
+      throw new Error(); // para cortar la ejecución
     }
 
-    // --- 2. PREPARAR DATOS PARA EL BACKEND ---
-    // Dividir el nombre completo en Nombres y Apellidos
-    const [nombres, ...apellidosArray] = formData.fullName.trim().split(" ");
-    
-    // Si solo se ingresó un nombre, usarlo para ambos. Si hay más, el resto son apellidos.
-    const apellidos = apellidosArray.length > 0 ? apellidosArray.join(" ") : nombres; 
-
-    const userPayload: UserPayload = {
-        nombres: nombres,
-        apellidos: apellidos,
-        correo: formData.email,
-        contrasenna: formData.password,
-    };
-
-    // --- 3. LLAMADA REAL AL BACKEND ---
-    fetch("http://localhost:8090/api/v1/usuarios", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify(userPayload),
-    })
-    .then(async (response) => {
-        if (!response.ok) {
-            // Intenta leer el mensaje de error del backend (ej: "Correo ya registrado")
-            try {
-                const errorData = await response.json();
-                throw new Error(errorData.message || "Error desconocido al registrar.");
-            } catch (jsonError) {
-                // En caso de que la respuesta no sea JSON o no tenga un mensaje legible
-                throw new Error(`Error en el servidor: Código ${response.status}`);
-            }
-        }
-        return response.json(); // Devuelve la respuesta si fue exitosa
-    })
-    .then(() => {
-        // Registro exitoso
-        alert("¡Cuenta creada correctamente! Serás redirigido al inicio de sesión.");
-        navigate(routes.loginPage); // Redirigir al login
-    })
-    .catch((error) => {
-        // Manejo de errores (red, servidor, validación)
-        console.error("Error en registro:", error);
-        alert(`Fallo en el registro: ${error.message}`);
-    })
-    .finally(() => {
-        setIsLoading(false);
+    return response.json();
+  })
+  .then(() => {
+    Swal.fire({
+      icon: "success",
+      title: "Cuenta creada correctamente",
+      text: "Serás redirigido al inicio de sesión.",
+      confirmButtonColor: "#3085d6",
+    }).then(() => {
+      navigate(routes.loginPage);
     });
-  };
+  })
+  .catch((error) => {
+    console.error("Error en registro:", error);
+    Swal.fire({
+      icon: "error",
+      title: "Error de conexión",
+      text: "No se pudo conectar con el servidor.",
+      confirmButtonColor: "#d33",
+    });
+  })
+  .finally(() => {
+    setIsLoading(false);
+  });
 
   return (
-    <Container className="my-5">
-      <Row className="justify-content-center">
-        <Col md={6}>
-          <Card className="shadow-lg p-4 bg-dark text-white">
-            <Card.Body>
-              <h2 className="text-center mb-4 text-warning">Registro de Usuario</h2>
-              <Form onSubmit={handleSubmit}>
-                
-                <Form.Group className="mb-3" controlId="formBasicFullName">
-                  <Form.Label>Nombre Completo</Form.Label>
-                  <Form.Control
-                    type="text"
-                    placeholder="Ingresa tu nombre y apellido"
-                    name="fullName"
-                    value={formData.fullName}
-                    onChange={handleChange}
-                    required
-                  />
-                </Form.Group>
-                
-                <Form.Group className="mb-3" controlId="formBasicEmail">
-                  <Form.Label>Correo Electrónico</Form.Label>
-                  <Form.Control
-                    type="email"
-                    placeholder="Ingresa tu correo"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                  />
-                </Form.Group>
+  <Container className="d-flex align-items-center justify-content-center">
+    <Card className="auth-card">
+      <Card.Body>
+        <div className="text-center">
+          <Card.Title as="h1" className="h3 mb-1">
+            Crear cuenta
+          </Card.Title>
+          <Card.Text className="auth-subtitle">
+            Regístrate para comenzar
+          </Card.Text>
+        </div>
 
-                <Form.Group className="mb-3" controlId="formBasicPassword">
-                  <Form.Label>Contraseña</Form.Label>
-                  <Form.Control
-                    type="password"
-                    placeholder="Contraseña (mínimo 8 caracteres)"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    required
-                    minLength={8}
-                  />
-                </Form.Group>
+        <div className="mt-4">
+          <Form noValidate onSubmit={handleSubmit}>
+            <Form.Group className="mb-4" controlId="fullName">
+              <Form.Label className="text-muted">Nombre completo</Form.Label>
+              <Form.Control
+                type="text"
+                name="fullName"
+                placeholder="Nombre y apellido"
+                required
+                value={formData.fullName}
+                onChange={handleChange}
+              />
+            </Form.Group>
 
-                <Form.Group className="mb-4" controlId="formBasicConfirmPassword">
-                  <Form.Label>Confirmar Contraseña</Form.Label>
-                  <Form.Control
-                    type="password"
-                    placeholder="Confirma tu contraseña"
-                    name="confirmPassword"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    required
-                    minLength={8}
-                  />
-                </Form.Group>
+            <Form.Group className="mb-4" controlId="email">
+              <Form.Label className="text-muted">
+                Correo electrónico
+              </Form.Label>
+              <Form.Control
+                type="email"
+                name="email"
+                placeholder="tucorreo@dominio.com"
+                required
+                value={formData.email}
+                onChange={handleChange}
+              />
+            </Form.Group>
 
-                <Button variant="warning" type="submit" className="w-100 mb-3" disabled={isLoading}>
-                  {isLoading ? "Registrando..." : "Registrar"}
-                </Button>
-                
-                <div className="text-center">
-                  <small className="text-muted">
-                    ¿Ya tienes una cuenta?{" "}
-                    <Link to={routes.loginPage} className="text-warning">
-                      Inicia Sesión
-                    </Link>
-                  </small>
-                </div>
-              </Form>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-    </Container>
-  );
+            <Form.Group className="mb-4" controlId="password">
+              <Form.Label className="text-muted">Contraseña</Form.Label>
+              <Form.Control
+                type="password"
+                name="password"
+                placeholder="Mínimo 8 caracteres"
+                required
+                value={formData.password}
+                onChange={handleChange}
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-4" controlId="confirmPassword">
+              <Form.Label className="text-muted">
+                Confirmar contraseña
+              </Form.Label>
+              <Form.Control
+                type="password"
+                name="confirmPassword"
+                placeholder="Repite tu contraseña"
+                required
+                value={formData.confirmPassword}
+                onChange={handleChange}
+              />
+            </Form.Group>
+
+            <div className="d-grid">
+              <Button
+                type="submit"
+                variant="dark"
+                size="lg"
+                className="auth-submit-btn"
+                disabled={isLoading}
+              >
+                {isLoading ? "Creando cuenta..." : "Crear cuenta"}
+              </Button>
+            </div>
+
+            <Card.Text className="text-center text-muted mt-4 mb-0">
+              ¿Ya tienes cuenta?{" "}
+              <Link to={routes.loginPage} className="auth-link">
+                Inicia sesión
+              </Link>
+              .
+            </Card.Text>
+          </Form>
+        </div>
+      </Card.Body>
+    </Card>
+  </Container>
+);
 };
 
 export default RegisterForm;

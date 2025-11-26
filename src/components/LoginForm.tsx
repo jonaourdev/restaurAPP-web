@@ -5,6 +5,8 @@ import { Card, Form, Button, Container, Spinner } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import { routes } from "./../router";
 import { API_BASE_URL } from "../utils/Helper";
+import Swal from "sweetalert2";
+import "../css/AuthForm.css"; 
 
 interface LoginProps {
   email: string;
@@ -27,6 +29,7 @@ function LoginForm() {
     email: "",
     password: "",
   });
+
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -38,50 +41,79 @@ function LoginForm() {
     e.preventDefault();
     setIsLoading(true);
 
-    if (!loginData.email || !loginData.password) {
-      alert("Por favor, ingresa tu email y contraseña.");
+    setTimeout(async () => {
+  if (!loginData.email || !loginData.password) {
+    Swal.fire({
+      icon: "warning",
+      title: "Campos incompletos",
+      text: "Por favor ingresa tu email y contraseña.",
+      confirmButtonColor: "#3085d6",
+    });
+    setIsLoading(false);
+    return;
+  }
+
+  try {
+    const response = await fetch(API_LOGIN_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        correo: loginData.email,
+        password: loginData.password,
+      }),
+    });
+
+    if (!response.ok) {
+      let errorMessage = "Credenciales inválidas.";
+      try {
+        const errorData = await response.json();
+        if (errorData.message) errorMessage = errorData.message;
+      } catch (_) {}
+
+      Swal.fire({
+        icon: "error",
+        title: "Error de autenticación",
+        text: errorMessage,
+        confirmButtonColor: "#d33",
+      });
+
       setIsLoading(false);
       return;
     }
 
-    try {
-      const response = await fetch(API_LOGIN_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-            correo: loginData.email, 
-            password: loginData.password 
-        }),
-      });
+    const userData = await response.json();
 
-      if (!response.ok) {
-        let errorMessage = "Credenciales inválidas.";
-        try {
-            const errorData = await response.json();
-            if (errorData.message) errorMessage = errorData.message;
-        } catch (e) {}
-        throw new Error(errorMessage);
-      }
+    const currentUser: CurrentUser = {
+      id: userData.idUsuario,
+      fullName: `${userData.nombres} ${userData.apellidos}`,
+      email: userData.correo,
+      role: userData.rol,
+    };
 
-      const userData = await response.json();
-      
-      // CORRECCIÓN 2: Guardar el ID que viene del backend
-      const currentUser: CurrentUser = {
-        id: userData.idUsuario, // <--- GUARDAR ID REAL
-        fullName: `${userData.nombres} ${userData.apellidos}`,
-        email: userData.correo,
-        role: userData.rol, 
-      };
+    localStorage.setItem("currentUser", JSON.stringify(currentUser));
 
-      localStorage.setItem("currentUser", JSON.stringify(currentUser));
-
-      alert(`¡Inicio de sesión exitoso! Bienvenido, ${currentUser.fullName}.`);
-
+    Swal.fire({
+      icon: "success",
+      title: "¡Inicio de sesión exitoso!",
+      text: `Bienvenido, ${currentUser.fullName}`,
+      confirmButtonColor: "#3085d6",
+    }).then(() => {
       if (currentUser.role === "ADMIN") {
         navigate(routes.adminDashboardPage);
       } else {
-        window.location.href = routes.conceptPage; 
+        navigate(routes.conceptPage);
       }
+    });
+  } catch (error) {
+    Swal.fire({
+      icon: "error",
+      title: "Error de conexión",
+      text: "No se pudo conectar con el servidor.",
+      confirmButtonColor: "#d33",
+    });
+    setIsLoading(false);
+  }
+}, 400);
       
     } catch (error) {
       console.error("Error de login:", error);
@@ -92,26 +124,33 @@ function LoginForm() {
 
   return (
     <Container className="d-flex align-items-center justify-content-center">
-      <Card className="shadow-lg w-100 bg-dark text-white" style={{ maxWidth: 480 }}>
+      <Card className="auth-card">
         <Card.Body>
           <div className="text-center">
-            <Card.Title as="h1" className="h3 mb-1 text-warning">Inicia sesión</Card.Title>
-            <Card.Text className="text-muted">Ingresa tus credenciales</Card.Text>
+            <Card.Title as="h1" className="h3 mb-1">
+              Inicia sesión
+            </Card.Title>
+            <Card.Text className="auth-subtitle">
+              Ingresa abajo rellenando con tus datos
+            </Card.Text>
           </div>
+
           <div className="mt-4">
             <Form noValidate onSubmit={handleSubmit}>
               <Form.Group className="mb-4" controlId="email">
-                <Form.Label className="text-muted">Correo electrónico</Form.Label>
+                <Form.Label className="text-muted">
+                  Correo electrónico
+                </Form.Label>
                 <Form.Control
                   type="email"
                   name="email"
-                  placeholder="admin@restaurapp.cl"
+                  placeholder="Correo electrónico"
                   required
                   value={loginData.email}
                   onChange={handleChange}
-                  className="bg-secondary text-white border-0"
                 />
               </Form.Group>
+
               <Form.Group className="mb-4" controlId="password">
                 <Form.Label className="text-muted">Contraseña</Form.Label>
                 <Form.Control
@@ -121,16 +160,40 @@ function LoginForm() {
                   required
                   value={loginData.password}
                   onChange={handleChange}
-                  className="bg-secondary text-white border-0"
                 />
               </Form.Group>
+
               <div className="d-grid">
-                <Button type="submit" variant="warning" size="lg" disabled={isLoading}>
-                  {isLoading ? <Spinner as="span" animation="border" size="sm" /> : "Ingresar"}
+                <Button
+                  type="submit"
+                  variant="dark"
+                  size="lg"
+                  className="auth-submit-btn"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Spinner
+                        as="span"
+                        animation="border"
+                        size="sm"
+                        role="status"
+                        aria-hidden="true"
+                      />
+                      <span className="ms-2">Ingresando...</span>
+                    </>
+                  ) : (
+                    "Ingresar"
+                  )}
                 </Button>
               </div>
+
               <Card.Text className="text-center text-muted mt-4 mb-0">
-                ¿No tienes cuenta? <Link to="/registerPage" className="text-warning">Regístrate</Link>
+                ¿No tienes cuenta?{" "}
+                <Link to="/registerPage" className="auth-link">
+                  Regístrate
+                </Link>
+                .
               </Card.Text>
             </Form>
           </div>
