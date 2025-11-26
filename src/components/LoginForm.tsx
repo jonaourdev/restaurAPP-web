@@ -1,6 +1,10 @@
-import { useState } from "react";
+// src/components/LoginForm.tsx
+
+import React, { useState } from "react";
 import { Card, Form, Button, Container, Spinner } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
+import { routes } from "./../router";
+import { API_BASE_URL } from "../utils/Helper";
 import Swal from "sweetalert2";
 import "../css/AuthForm.css"; 
 
@@ -8,6 +12,16 @@ interface LoginProps {
   email: string;
   password: string;
 }
+
+// CORRECCIÓN 1: Agregar el ID a la interfaz del usuario guardado
+interface CurrentUser {
+  id: number; // <--- NUEVO CAMPO
+  fullName: string;
+  email: string;
+  role: string;
+}
+
+const API_LOGIN_URL = `${API_BASE_URL}/usuarios/login`;
 
 function LoginForm() {
   const navigate = useNavigate();
@@ -23,55 +37,89 @@ function LoginForm() {
     setLoginData({ ...loginData, [name]: value });
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
 
-    setTimeout(() => {
-      if (!loginData.email || !loginData.password) {
-        Swal.fire({
-          icon: "warning",
-          title: "Campos incompletos",
-          text: "Por favor ingresa tu email y contraseña.",
-          confirmButtonColor: "#3085d6",
-        });
-        setIsLoading(false);
-        return;
-      }
+    setTimeout(async () => {
+  if (!loginData.email || !loginData.password) {
+    Swal.fire({
+      icon: "warning",
+      title: "Campos incompletos",
+      text: "Por favor ingresa tu email y contraseña.",
+      confirmButtonColor: "#3085d6",
+    });
+    setIsLoading(false);
+    return;
+  }
 
-      const usersJSON = localStorage.getItem("users");
-      const users = usersJSON ? JSON.parse(usersJSON) : [];
+  try {
+    const response = await fetch(API_LOGIN_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        correo: loginData.email,
+        password: loginData.password,
+      }),
+    });
 
-      const foundUser = users.find(
-        (user: any) =>
-          user.email === loginData.email && user.password === loginData.password
-      );
+    if (!response.ok) {
+      let errorMessage = "Credenciales inválidas.";
+      try {
+        const errorData = await response.json();
+        if (errorData.message) errorMessage = errorData.message;
+      } catch (_) {}
 
-      if (foundUser) {
-        const currentUser = {
-          fullName: foundUser.fullName,
-          email: foundUser.email,
-        };
-        localStorage.setItem("currentUser", JSON.stringify(currentUser));
+      Swal.fire({
+        icon: "error",
+        title: "Error de autenticación",
+        text: errorMessage,
+        confirmButtonColor: "#d33",
+      });
 
-        Swal.fire({
-          icon: "success",
-          title: "¡Inicio de sesión exitoso!",
-          text: "Bienvenido/a a RestaurAPP",
-          confirmButtonColor: "#3085d6",
-        }).then(() => {
-          navigate("/conceptPage");
-        });
+      setIsLoading(false);
+      return;
+    }
+
+    const userData = await response.json();
+
+    const currentUser: CurrentUser = {
+      id: userData.idUsuario,
+      fullName: `${userData.nombres} ${userData.apellidos}`,
+      email: userData.correo,
+      role: userData.rol,
+    };
+
+    localStorage.setItem("currentUser", JSON.stringify(currentUser));
+
+    Swal.fire({
+      icon: "success",
+      title: "¡Inicio de sesión exitoso!",
+      text: `Bienvenido, ${currentUser.fullName}`,
+      confirmButtonColor: "#3085d6",
+    }).then(() => {
+      if (currentUser.role === "ADMIN") {
+        navigate(routes.adminDashboardPage);
       } else {
-        Swal.fire({
-          icon: "error",
-          title: "Usuario no encontrado",
-          text: "Revisa tus datos o regístrate primero.",
-          confirmButtonColor: "#d33",
-        });
-        setIsLoading(false);
+        navigate(routes.conceptPage);
       }
-    }, 1500);
+    });
+  } catch (error) {
+    Swal.fire({
+      icon: "error",
+      title: "Error de conexión",
+      text: "No se pudo conectar con el servidor.",
+      confirmButtonColor: "#d33",
+    });
+    setIsLoading(false);
+  }
+}, 400);
+      
+    } catch (error) {
+      console.error("Error de login:", error);
+      alert(error instanceof Error ? error.message : "Error al iniciar sesión.");
+      setIsLoading(false);
+    }
   };
 
   return (

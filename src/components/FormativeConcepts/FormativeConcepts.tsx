@@ -1,15 +1,26 @@
-import { useEffect, useState } from "react";
+import {useEffect, useState} from "react";
 import { Container, Row, Col, Card, Button } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import {Link} from "react-router-dom";
+import {dataHelper, type Formative} from "../../utils/Helper";
 import AddNewCard from "../ConceptCards/CardAgregar";
-import "../../css/ConceptCards/CardTecnica.css"; // usa tu CSS editorial
+import "../../css/ConceptCards/CardTecnica.css"; 
 import { dataHelper, type Formative } from "../../utils/Helper";
 
 export default function FormativeConcepts() {
   const [concepts, setConcepts] = useState<Formative[]>([]);
 
   useEffect(() => {
-    setConcepts(dataHelper.getFormativeConcepts());
+    async function fetchConcepts() {
+      const realConcepts = await dataHelper.getRealFormativos();
+      const mapped = realConcepts.map((dto) => ({
+        conceptId: dto.idConceptoFormativo,
+        name: dto.nombreFormativo,
+        description: dto.descripcionFormativo,
+      }));
+      setConcepts(mapped);
+    }
+
+    fetchConcepts();
   }, []);
 
   return (

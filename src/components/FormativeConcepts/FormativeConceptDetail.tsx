@@ -1,13 +1,26 @@
-import { Container, Card } from "react-bootstrap";
-import { useParams, Link } from "react-router-dom";
-import { routes } from "../../router";
-import { dataHelper, type Formative } from "../../utils/Helper";
+import {Container, Card} from "react-bootstrap";
+import {useParams, Link} from "react-router-dom";
+import {routes} from "../../router";
+import {dataHelper} from "../../utils/Helper";
+import {useEffect, useState} from "react";
 
 export default function FormativeConceptDetail() {
-  const { id } = useParams<{ id?: string }>();
+  const {id} = useParams<{id?: string}>();
   const conceptId = Number(id);
 
-  // fallback si id es inválido
+  const [concept, setConcept] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchConcepts() {
+      const result = await dataHelper.getRealFormativeId(conceptId);
+      setConcept(result);
+      setLoading(false);
+    }
+    fetchConcepts();
+  }, [conceptId]);
+
+  // fallback if id is invalid
   if (!id || Number.isNaN(conceptId)) {
     return (
       <Container className="py-5">
@@ -22,8 +35,6 @@ export default function FormativeConceptDetail() {
       </Container>
     );
   }
-
-  const concept: Formative | undefined = dataHelper.getFormativeById(conceptId);
 
   if (!concept) {
     return (
@@ -42,7 +53,7 @@ export default function FormativeConceptDetail() {
 
   return (
     <Container className="py-5">
-      <Card className="mx-auto" style={{ maxWidth: 800 }}>
+      <Card className="mx-auto" style={{maxWidth: 800}}>
         <Card.Body>
           <h2>{concept.name}</h2>
           <p>{concept.description}</p>
@@ -52,7 +63,7 @@ export default function FormativeConceptDetail() {
               <img
                 src={concept.image}
                 alt={concept.name}
-                style={{ maxWidth: "100%" }}
+                style={{maxWidth: "100%"}}
               />
             </div>
           )}

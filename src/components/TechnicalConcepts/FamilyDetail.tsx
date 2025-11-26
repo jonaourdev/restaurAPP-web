@@ -6,15 +6,60 @@ import { routes } from "../../router";
 import "../../css/ConceptCards/TechnicalConceptDetail.css";
 
 export default function FamilyDetail() {
-  const { id } = useParams<{ id?: string }>();
+  const {id} = useParams<{id?: string}>();
+  const familyId = Number(id);
+
   const [family, setFamily] = useState<Family | undefined>();
+  const [concepts, setConcepts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (id) {
-      const familyData = dataHelper.getFamilyById(Number(id));
-      setFamily(familyData);
+    async function fetchData() {
+      if (!familyId || Number.isNaN(familyId)) {
+        setLoading(false);
+        return;
+      }
+
+      //Cargar familia
+      const realFamilies = await dataHelper.getRealFamilias();
+      const fam = realFamilies.find((f) => f.idFamilia === familyId);
+
+      if (!fam) {
+        setFamily(undefined);
+        setLoading(false);
+        return;
+      }
+
+      //Mapear DTO de familia
+      const mappedFamily: Family = {
+        idFamilies: fam.idFamilia,
+        name: fam.nombreFamilia,
+        descriptions: fam.descripcionFamilia,
+        componentItemn: "",
+        image: "",
+        subConcepto: [],
+      };
+
+      //Cargar conceptos tecnicos asociado a la familia
+      const realTecnicos = await dataHelper.getRealTecnicos();
+      const filteredTecnicos = realTecnicos.filter(
+        (t) => t.idFamilia === familyId
+      );
+
+      //Mapear los tecnico a subConcepto
+
+      mappedFamily.subConcepto = filteredTecnicos.map((t) => ({
+        conceptId: t.idTecnico,
+        familyId: familyId,
+        name: t.nombreTecnico,
+      }));
+
+      setFamily(mappedFamily);
+      setLoading(false);
     }
-  }, [id]);
+
+    fetchData();
+  }, [familyId]);
 
   if (!family) {
     return (

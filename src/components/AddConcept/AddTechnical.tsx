@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { dataHelper, type Family } from "../../utils/Helper";
 import "../../css/AddConceptForm.css"; // <--- tu CSS nuevo
 
-export default function AddTechnicalPage() {
+export default function AddTechnical() {
   const [families, setFamilies] = useState<Family[]>([]);
   const [familyId, setFamilyId] = useState<string>("");
   const [name, setName] = useState("");
@@ -13,25 +13,57 @@ export default function AddTechnicalPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fams = dataHelper.getTechnicalFamilies();
-    setFamilies(fams);
-    if (fams.length > 0) {
-      setFamilyId(String(fams[0].idFamilies));
+    async function fetchFamilies() {
+      const realFamilies = await dataHelper.getRealFamilias();
+
+      // Mapear DTO
+      const mapped = realFamilies.map((f) => ({
+        idFamilies: f.idFamilia,
+        name: f.nombreFamilia,
+        descriptions: f.descripcionFamilia,
+        componentItemn: "",
+        image: "",
+        subConcepto: [],
+      }));
+
+      setFamilies(mapped);
+
+      if (mapped.length > 0) {
+        setFamilyId(String(mapped[0].idFamilies));
+      }
     }
+
+    fetchFamilies();
   }, []);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const fid = Number(familyId);
+
+    // Validar ID de familia y nombre
     if (Number.isNaN(fid) || !name.trim()) return;
 
-    dataHelper.addSubConcept(fid, {
-      name: name.trim(),
-      description: description.trim() || undefined,
-      image: image.trim() || undefined,
-    });
+    try {
+      // LLAMADA AL BACKEND a través de dataHelper.addSubConcept
+      // Esto llama a POST /api/v1/conceptos-tecnicos
+      await dataHelper.addSubConcept(fid, {
+        name: name.trim(),
+        description: description.trim() || undefined,
+        image: image.trim() || undefined,
+      });
 
-    navigate(`/familia/${fid}`);
+      alert("Subconcepto técnico creado y enviado a revisión.");
+      // Navegación a la página de detalle de la familia después de la creación
+      navigate(`/familia/${fid}`);
+    } catch (error) {
+      // Manejo de errores de la API o de red
+      console.error("Error al guardar subconcepto:", error);
+      alert(
+        `Error al guardar subconcepto: ${
+          error instanceof Error ? error.message : "Error desconocido"
+        }`
+      );
+    }
   }
 
   return (

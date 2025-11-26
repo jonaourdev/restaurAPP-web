@@ -1,3 +1,5 @@
+// src/components/AddConcept/AddFamily.tsx
+
 import React, { useState } from "react";
 import { Form, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
@@ -5,25 +7,40 @@ import { dataHelper } from "../../utils/Helper";
 import { routes } from "../../router";
 import "../../css/AddConceptForm.css"; // <-- IMPORTACIÓN CORRECTA
 
-export default function AddFamilyPage() {
+export default function AddFamily() {
   const [name, setName] = useState("");
   const [descriptions, setDescriptions] = useState("");
   const [componentItemn, setComponentItemn] = useState("");
   const [image, setImage] = useState("");
   const navigate = useNavigate();
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim()) return;
+    
+    // Validación básica: El nombre no puede estar vacío
+    if (!name.trim()) {
+      alert("El nombre de la familia es obligatorio.");
+      return;
+    }
 
-    dataHelper.addTechnicalFamily({
-      name: name.trim(),
-      descriptions: descriptions.trim() || undefined,
-      componentItemn: componentItemn.trim() || undefined,
-      image: image.trim() || undefined,
-    });
+    try {
+      // LLAMADA AL BACKEND a través de dataHelper
+      await dataHelper.addTechnicalFamily({
+        name: name.trim(),
+        descriptions: descriptions.trim() || undefined,
+        componentItemn: componentItemn.trim() || undefined,
+        image: image.trim() || undefined,
+      });
 
-    navigate(routes.TechnicalConceptPage);
+      alert("Familia técnica creada y enviada a revisión.");
+      // Redirigir a la página de conceptos técnicos (donde se listan las familias)
+      navigate(routes.TechnicalConceptPage);
+      
+    } catch (error) {
+      // Manejo de errores de la API o de red
+      console.error("Error al guardar familia:", error);
+      alert(`Error al guardar familia: ${error instanceof Error ? error.message : "Error desconocido"}`);
+    }
   }
 
   return (

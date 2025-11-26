@@ -3,13 +3,23 @@ import { Container, Row, Col, Card, Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import AddNewCard from "../ConceptCards/CardAgregar";
 import "../../css/ConceptCards/CardTecnica.css";
-import { dataHelper, type Family } from "../../utils/Helper";
+import {dataHelper, type Family} from "../../utils/Helper";
 
 export default function TechnicalConcepts() {
   const [families, setFamilies] = useState<Family[]>([]);
 
   useEffect(() => {
-    setFamilies(dataHelper.getTechnicalFamilies());
+    async function fetchFamilias() {
+      const realFamilias = await dataHelper.getRealFamilias();
+      const mapped = realFamilias.map((dto) => ({
+        idFamilies: dto.idFamilia,
+        name: dto.nombreFamilia,
+        description: dto.descripcionFamilia,
+      }));
+      setFamilies(mapped);
+    }
+
+    fetchFamilias();
   }, []);
 
   return (
