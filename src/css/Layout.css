@@ -1,10 +1,5 @@
 .layout-container {
-  background: radial-gradient(
-    circle at center,
-    #1f1f1f 0%,
-    #161616 55%,
-    #0e0e0e 100%
-  );
+  background: whitesmoke;
   min-height: 100vh;
   display: flex;
   flex-direction: column;

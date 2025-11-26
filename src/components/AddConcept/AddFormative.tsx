@@ -1,3 +1,5 @@
+// src/components/AddConcept/AddFormative.tsx
+
 import React, { useState } from "react";
 import { Form, Button, Card } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
@@ -5,23 +7,33 @@ import { dataHelper } from "../../utils/Helper";
 import { routes } from "../../router";
 import "../../css/AddConceptForm.css";
 
-export default function AddFormativePage() {
+export default function AddFormative() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [image, setImage] = useState("");
   const navigate = useNavigate();
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim()) return;
+    
+    if (!name.trim()) {
+      alert("El nombre del concepto es obligatorio.");
+      return;
+    }
 
-    dataHelper.addFormativeConcept({
-      name: name.trim(),
-      description: description.trim() || "",
-      image: image.trim() || undefined,
-    });
+    try {
+      // Llamamos al helper corregido
+      await dataHelper.addFormativeConcept({
+        name: name.trim(),
+        description: description.trim() || "",
+      });
 
-    navigate(routes.FormativeConceptPage);
+      alert("Concepto formativo creado y enviado a revisión.");
+      navigate(routes.FormativeConceptPage);
+      
+    } catch (error) {
+      console.error("Error al guardar concepto formativo:", error);
+      alert(`Error al guardar: ${error instanceof Error ? error.message : "Error desconocido"}`);
+    }
   }
 
   return (
@@ -50,17 +62,6 @@ export default function AddFormativePage() {
                 className="add-form-input"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3" controlId="image">
-              <Form.Label>URL de imagen (opcional)</Form.Label>
-              <Form.Control
-                className="add-form-input"
-                type="text"
-                placeholder="/assets/formative/example.png"
-                value={image}
-                onChange={(e) => setImage(e.target.value)}
               />
             </Form.Group>
 
