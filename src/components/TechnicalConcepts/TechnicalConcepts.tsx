@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import { Container, Row, Col, Card, Button } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import {useEffect, useState} from "react";
+import {Container, Row, Col, Card, Button} from "react-bootstrap";
+import {Link} from "react-router-dom";
 import AddNewCard from "../ConceptCards/CardAgregar";
 import "../../css/ConceptCards/CardTecnica.css";
 import {dataHelper, type Family} from "../../utils/Helper";
@@ -11,11 +11,27 @@ export default function TechnicalConcepts() {
   useEffect(() => {
     async function fetchFamilias() {
       const realFamilias = await dataHelper.getRealFamilias();
-      const mapped = realFamilias.map((dto) => ({
-        idFamilies: dto.idFamilia,
-        name: dto.nombreFamilia,
-        description: dto.descripcionFamilia,
-      }));
+      const realTecnicos = await dataHelper.getRealTecnicos();
+
+      // 3. Mapear familias + sus subconceptos
+      const mapped = realFamilias.map((dto) => {
+        const subConcepto = realTecnicos
+          .filter((t) => t.idFamilia === dto.idFamilia)
+          .map((t) => ({
+            conceptId: t.idTecnico,
+            familyId: dto.idFamilia,
+            name: t.nombreTecnico,
+          }));
+
+        return {
+          idFamilies: dto.idFamilia,
+          name: dto.nombreFamilia,
+          description: dto.descripcionFamilia,
+          image: "",
+          subConcepto: subConcepto,
+        };
+      });
+
       setFamilies(mapped);
     }
 
@@ -28,7 +44,7 @@ export default function TechnicalConcepts() {
         Conceptos Técnicos
       </h1>
 
-      <div className="border-bottom mb-4" style={{ borderColor: "#d1d1d1" }} />
+      <div className="border-bottom mb-4" style={{borderColor: "#d1d1d1"}} />
 
       <Row className="g-4">
         {families
