@@ -14,8 +14,10 @@ export default function TechnicalConcepts() {
 
   return (
     <Stack gap={3}>
-      <h1 className="text-center mb-5 display-5">Technical Concepts</h1>
-
+      <h1 className="text-center mb-2 display-5 text-black">
+        Technical Concepts
+      </h1>
+      <div className="border-bottom mb-3" style={{ borderColor: "#d1d1d1" }} />
       <div className="technical-grid">
         {families
           //  Filtra solo las familias con subConceptos reales

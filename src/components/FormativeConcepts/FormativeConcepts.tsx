@@ -13,18 +13,22 @@ export default function FormativeConcepts() {
 
   return (
     <Container className="py-5">
-      <h1 className="text-center mb-5">CONCEPTOS FORMATIVOS</h1>
-
+      <h1 className="text-center mb-2 display-5 text-black">
+        Conceptos Formativos
+      </h1>
+      <div className="border-bottom mb-3" style={{ borderColor: "#d1d1d1" }} />
       <div className="row g-4">
         {concepts.map((concept) => (
           <div key={concept.conceptId} className="col-12 col-md-6 col-lg-4">
-            <Link 
+            <Link
               to={`/concepto/${concept.conceptId}`}
               className="text-decoration-none"
             >
               <Card className="h-100 shadow-sm hover-shadow">
                 <Card.Body>
-                  <Card.Title className="text-center mb-3">{concept.name}</Card.Title>
+                  <Card.Title className="text-center mb-3">
+                    {concept.name}
+                  </Card.Title>
                   <Card.Text className="text-muted">
                     {concept.description.substring(0, 150)}...
                   </Card.Text>
