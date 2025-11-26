@@ -1,10 +1,9 @@
 // src/components/AddConcept/AddTechnical.tsx
 
-import React, { useEffect, useState } from "react";
-import { Container, Form, Button } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
-import { dataHelper, type Family } from "../../utils/Helper";
-
+import React, {useEffect, useState} from "react";
+import {Container, Form, Button} from "react-bootstrap";
+import {useNavigate} from "react-router-dom";
+import {dataHelper, type Family} from "../../utils/Helper";
 
 export default function AddTechnical() {
   const [families, setFamilies] = useState<Family[]>([]);
@@ -15,18 +14,33 @@ export default function AddTechnical() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Nota: Esta llamada sigue siendo la versión local de simulación para cargar el dropdown.
-    setFamilies(dataHelper.getTechnicalFamilies());
-    if (families.length > 0 && !familyId) {
-      setFamilyId(String(families[0].idFamilies));
+    async function fetchFamilies() {
+      const realFamilies = await dataHelper.getRealFamilias();
+
+      // Mapear DTO
+      const mapped = realFamilies.map((f) => ({
+        idFamilies: f.idFamilia,
+        name: f.nombreFamilia,
+        descriptions: f.descripcionFamilia,
+        componentItemn: "",
+        image: "",
+        subConcepto: [],
+      }));
+
+      setFamilies(mapped);
+
+      if (mapped.length > 0) {
+        setFamilyId(String(mapped[0].idFamilies));
+      }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    fetchFamilies();
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const fid = Number(familyId);
-    
+
     // Validar ID de familia y nombre
     if (Number.isNaN(fid) || !name.trim()) return;
 
@@ -42,11 +56,14 @@ export default function AddTechnical() {
       alert("Subconcepto técnico creado y enviado a revisión.");
       // Navegación a la página de detalle de la familia después de la creación
       navigate(`/familia/${fid}`);
-      
     } catch (error) {
       // Manejo de errores de la API o de red
       console.error("Error al guardar subconcepto:", error);
-      alert(`Error al guardar subconcepto: ${error instanceof Error ? error.message : "Error desconocido"}`);
+      alert(
+        `Error al guardar subconcepto: ${
+          error instanceof Error ? error.message : "Error desconocido"
+        }`
+      );
     }
   }
 
@@ -59,11 +76,10 @@ export default function AddTechnical() {
         </div>
       ) : (
         <Form onSubmit={handleSubmit}>
-          
           <Form.Group className="mb-3" controlId="family">
             <Form.Label>Familia</Form.Label>
-            <Form.Select 
-              value={familyId} 
+            <Form.Select
+              value={familyId}
               onChange={(e) => setFamilyId(e.target.value)}
             >
               {families.map((f) => (
@@ -76,31 +92,31 @@ export default function AddTechnical() {
 
           <Form.Group className="mb-3" controlId="name">
             <Form.Label>Nombre</Form.Label>
-            <Form.Control 
-              type="text" 
-              value={name} 
-              onChange={(e) => setName(e.target.value)} 
-              required 
+            <Form.Control
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
             />
           </Form.Group>
 
           <Form.Group className="mb-3" controlId="description">
             <Form.Label>Descripción</Form.Label>
-            <Form.Control 
-              as="textarea" 
-              rows={3} 
-              value={description} 
-              onChange={(e) => setDescription(e.target.value)} 
+            <Form.Control
+              as="textarea"
+              rows={3}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
             />
           </Form.Group>
 
           <Form.Group className="mb-3" controlId="image">
             <Form.Label>URL de imagen (opcional)</Form.Label>
-            <Form.Control 
-              type="text" 
-              placeholder="/assets/subconcept.png" 
-              value={image} 
-              onChange={(e) => setImage(e.target.value)} 
+            <Form.Control
+              type="text"
+              placeholder="/assets/subconcept.png"
+              value={image}
+              onChange={(e) => setImage(e.target.value)}
             />
           </Form.Group>
 
