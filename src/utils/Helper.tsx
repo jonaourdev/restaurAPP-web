@@ -11,7 +11,7 @@ export interface ConceptoTecnicoDTO {
   idTecnico: number;
   nombreTecnico: string;
   estado: string;
-  idFamilia: number; //AGREGADO RECIEN TESTEAR
+  idFamilia: number;
 }
 
 export interface ConceptoFormativoDTO {
@@ -43,6 +43,7 @@ export type Formative = {
   conceptId: number;
   name: string;
   description: string;
+  image?: string; // Agregado para consistencia con DTO
 };
 
 // Interfaz para los Aportes
@@ -65,9 +66,18 @@ const STORAGE_KEYS = {
 } as const;
 
 const API_BASE_URL = "http://localhost:8090/api/v1";
-export {API_BASE_URL};
+export { API_BASE_URL };
 
-/* --- Helpers --- */
+/* --- Helpers de Autenticación (NUEVO) --- */
+function getAuthHeaders() {
+  const token = localStorage.getItem("token");
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+  };
+}
+
+/* --- Helpers Generales --- */
 function getInitialData<T>(key: string, defaultData: T[]): T[] {
   try {
     const stored = localStorage.getItem(key);
@@ -90,6 +100,7 @@ function getCurrentUserId(): number {
     const storedUser = localStorage.getItem("currentUser");
     if (storedUser) {
       const user = JSON.parse(storedUser);
+      // Asegurarse de que el objeto user tenga la propiedad 'id' mapeada correctamente
       if (user && user.id) return user.id;
     }
   } catch (e) {
@@ -100,12 +111,14 @@ function getCurrentUserId(): number {
   );
 }
 
-/* --- API --- */
+/* --- API Genérica --- */
 async function postToApi<T>(endpoint: string, payload: T): Promise<void> {
   const url = `${API_BASE_URL}/${endpoint}`;
+  
+  // AHORA USA getAuthHeaders() para incluir el token
   const response = await fetch(url, {
     method: "POST",
-    headers: {"Content-Type": "application/json"},
+    headers: getAuthHeaders(), 
     body: JSON.stringify(payload),
   });
 
@@ -119,7 +132,7 @@ async function postToApi<T>(endpoint: string, payload: T): Promise<void> {
   }
 }
 
-/* --- Mock Data --- */
+/* --- Mock Data (Datos Locales de Respaldo) --- */
 const initialFamilies: Family[] = [
   {
     idFamilies: 1,
@@ -131,12 +144,12 @@ const initialFamilies: Family[] = [
   },
 ];
 const initialFormatives: Formative[] = [
-  {conceptId: 1, name: "Patrimonio", description: "..."},
+  { conceptId: 1, name: "Patrimonio", description: "..." },
 ];
 
 /* --- Helper Exportado --- */
 export const dataHelper = {
-  // LECTURA LOCAL
+  // LECTURA LOCAL (No requiere cambios, usa localStorage del navegador)
   getTechnicalFamilies(): Family[] {
     return getInitialData(STORAGE_KEYS.FAMILIES, initialFamilies);
   },
@@ -155,10 +168,12 @@ export const dataHelper = {
     return this.getFormativeConcepts().find((c) => c.conceptId === id);
   },
 
-  // LECTURA REAL (Dashboard)
+  // LECTURA REAL (Dashboard y Listados) - AHORA CON HEADERS DE AUTH
   async getAllAportes(): Promise<Aporte[]> {
     try {
-      const res = await fetch(`${API_BASE_URL}/aportes`);
+      const res = await fetch(`${API_BASE_URL}/aportes`, {
+        headers: getAuthHeaders() // Auth header agregado
+      });
       return res.ok ? await res.json() : [];
     } catch {
       return [];
@@ -166,7 +181,9 @@ export const dataHelper = {
   },
   async getRealFamilias(): Promise<FamiliaDTO[]> {
     try {
-      const res = await fetch(`${API_BASE_URL}/familias`);
+      const res = await fetch(`${API_BASE_URL}/familias`, {
+        headers: getAuthHeaders() // Auth header agregado
+      });
       return res.ok ? await res.json() : [];
     } catch {
       return [];
@@ -174,7 +191,9 @@ export const dataHelper = {
   },
   async getRealTecnicos(): Promise<ConceptoTecnicoDTO[]> {
     try {
-      const res = await fetch(`${API_BASE_URL}/conceptos-tecnicos`);
+      const res = await fetch(`${API_BASE_URL}/conceptos-tecnicos`, {
+        headers: getAuthHeaders() // Auth header agregado
+      });
       return res.ok ? await res.json() : [];
     } catch {
       return [];
@@ -182,18 +201,21 @@ export const dataHelper = {
   },
   async getRealFormativos(): Promise<ConceptoFormativoDTO[]> {
     try {
-      const res = await fetch(`${API_BASE_URL}/conceptos-formativos`);
+      const res = await fetch(`${API_BASE_URL}/conceptos-formativos`, {
+        headers: getAuthHeaders() // Auth header agregado
+      });
       return res.ok ? await res.json() : [];
     } catch {
       return [];
     }
   },
 
-  //LECTURA REAL (CONCEPTOS EN DETALLE)
-
+  // LECTURA REAL (CONCEPTOS EN DETALLE)
   async getRealFormativeId(id: number) {
     try {
-      const res = await fetch(`${API_BASE_URL}/conceptos-formativos/${id}`);
+      const res = await fetch(`${API_BASE_URL}/conceptos-formativos/${id}`, {
+        headers: getAuthHeaders() // Auth header agregado
+      });
       if (!res.ok) return null;
 
       return await res.json();
@@ -202,27 +224,31 @@ export const dataHelper = {
     }
   },
 
-  // --- ESCRITURA (AHORA APUNTA A "APORTES" PARA REVISIÓN) ---
+  // --- ESCRITURA (USA postToApi QUE YA TIENE LOS HEADERS) ---
 
   // 1. Proponer Familia
   async addTechnicalFamily(payload: {
     name: string;
     descriptions?: string;
+    componentItemn?: string;
+    image?: string;
   }): Promise<void> {
     const userId = getCurrentUserId();
-    // Enviamos a /aportes en lugar de /familias
+    // Enviamos a /aportes
     await postToApi("aportes", {
       idUsuario: userId,
       tipoObjeto: "FAMILIA",
       nombrePropuesto: payload.name,
       descripcionPropuesto: payload.descriptions || "Sin descripción.",
+      // Puedes adaptar el backend para recibir imagen o componentes en la descripción si es necesario
     });
   },
 
-  // 2. Proponer Concepto Formativo (SOLUCIÓN A TU PROBLEMA)
+  // 2. Proponer Concepto Formativo
   async addFormativeConcept(payload: {
     name: string;
     description: string;
+    image?: string;
   }): Promise<void> {
     const userId = getCurrentUserId();
     // Enviamos a /aportes
@@ -237,7 +263,7 @@ export const dataHelper = {
   // 3. Proponer Subconcepto Técnico
   async addSubConcept(
     familyId: number,
-    payload: {name: string; description?: string}
+    payload: { name: string; description?: string; image?: string }
   ): Promise<void> {
     const userId = getCurrentUserId();
     // Enviamos a /aportes
@@ -246,7 +272,7 @@ export const dataHelper = {
       tipoObjeto: "TECNICO",
       nombrePropuesto: payload.name,
       descripcionPropuesto: payload.description || "Sin descripción.",
-      idFamilia: familyId, // Enviamos la referencia a la familia
+      idFamilia: familyId,
     });
   },
 
@@ -256,7 +282,7 @@ export const dataHelper = {
     estado: "APROBADO" | "RECHAZADO",
     motivo: string = ""
   ): Promise<void> {
-    const adminId = getCurrentUserId(); // ID del admin logueado
+    const adminId = getCurrentUserId(); 
 
     const payload = {
       idAdmin: adminId,
@@ -264,12 +290,12 @@ export const dataHelper = {
       motivoRechazo: motivo,
     };
 
-    // Asumiendo ruta: /api/v1/aportes/{id}/revision (Ajusta si es diferente en tu backend)
     const url = `${API_BASE_URL}/aportes/${idAporte}/revision`;
 
+    // AHORA USA getAuthHeaders()
     const response = await fetch(url, {
       method: "PUT",
-      headers: {"Content-Type": "application/json"},
+      headers: getAuthHeaders(), 
       body: JSON.stringify(payload),
     });
 

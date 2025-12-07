@@ -21,6 +21,7 @@ function AppNavbar() {
 
   const handleLogout = () => {
     localStorage.removeItem("currentUser");
+    localStorage.removeItem("token");
     setUser(null);
     window.location.href = "/";
   };

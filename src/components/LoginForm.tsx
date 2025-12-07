@@ -4,7 +4,8 @@ import React, { useState } from "react";
 import { Card, Form, Button, Container, Spinner } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import { routes } from "./../router";
-import { API_BASE_URL } from "../utils/Helper";
+// Importamos solo para referencia, pero el login suele estar en la raíz
+// import { API_BASE_URL } from "../utils/Helper"; 
 import Swal from "sweetalert2";
 import "../css/AuthForm.css";
 
@@ -20,7 +21,9 @@ interface CurrentUser {
   role: string;
 }
 
-const API_LOGIN_URL = `${API_BASE_URL}/usuarios/login`;
+// IMPORTANTE: Spring Security con el filtro JWT por defecto escucha en "/login" (puerto 8090)
+// No suele estar bajo "/api/v1" a menos que lo hayas configurado así explícitamente.
+const API_LOGIN_URL = "http://localhost:8090/login";
 
 function LoginForm() {
   const navigate = useNavigate();
@@ -41,77 +44,98 @@ function LoginForm() {
     e.preventDefault();
     setIsLoading(true);
 
-    setTimeout(async () => {
-      // Validación de campos
-      if (!loginData.email || !loginData.password) {
+    // Validación de campos locales
+    if (!loginData.email || !loginData.password) {
+      Swal.fire({
+        icon: "warning",
+        title: "Campos incompletos",
+        text: "Por favor ingresa tu email y contraseña.",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      // 1. Petición de Login al Backend
+      const response = await fetch(API_LOGIN_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        // Enviamos 'correo' y 'password' porque así lo espera tu DTO en el backend
+        // (y tu filtro JWT lo lee de ahí)
+        body: JSON.stringify({
+          correo: loginData.email,
+          password: loginData.password,
+        }),
+      });
+
+      // 2. Manejo de errores HTTP (401, 403, etc)
+      if (!response.ok) {
+        // Intentamos leer el mensaje de error del backend si existe
+        let errorMessage = "Credenciales inválidas.";
+        try {
+          const errorData = await response.json();
+          if (errorData.message) errorMessage = errorData.message;
+        } catch (_) {
+        }
+
         Swal.fire({
-          icon: "warning",
-          title: "Campos incompletos",
-          text: "Por favor ingresa tu email y contraseña.",
+          icon: "error",
+          title: "Error de autenticación",
+          text: errorMessage,
         });
+
         setIsLoading(false);
         return;
       }
 
-      try {
-        const response = await fetch(API_LOGIN_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            correo: loginData.email,
-            password: loginData.password,
-          }),
-        });
+      // 3. Procesar respuesta exitosa
+      const responseData = await response.json();
 
-        if (!response.ok) {
-          let errorMessage = "Credenciales inválidas.";
-          try {
-            const errorData = await response.json();
-            if (errorData.message) errorMessage = errorData.message;
-          } catch (_) {}
-
-          Swal.fire({
-            icon: "error",
-            title: "Error de autenticación",
-            text: errorMessage,
-          });
-
-          setIsLoading(false);
-          return;
-        }
-
-        const userData = await response.json();
-
-        const currentUser: CurrentUser = {
-          id: userData.idUsuario,
-          fullName: `${userData.nombres} ${userData.apellidos}`,
-          email: userData.correo,
-          role: userData.rol,
-        };
-
-        localStorage.setItem("currentUser", JSON.stringify(currentUser));
-
-        Swal.fire({
-          icon: "success",
-          title: "¡Inicio de sesión exitoso!",
-          text: `Bienvenido, ${currentUser.fullName}`,
-        }).then(() => {
-          if (currentUser.role === "ADMIN") {
-            navigate(routes.adminDashboardPage);
-          } else {
-            navigate(routes.conceptPage);
-          }
-        });
-      } catch (error) {
-        Swal.fire({
-          icon: "error",
-          title: "Error de conexión",
-          text: "No se pudo conectar con el servidor.",
-        });
+      // A) GUARDAR EL TOKEN (Vital para que funcionen las siguientes peticiones)
+      // El backend debe devolver el token en el cuerpo del JSON (ej: { "token": "eyJhb...", ... })
+      if (responseData.token) {
+        localStorage.setItem("token", responseData.token);
+      } else {
+        // Si no viene el token, algo anda mal en el backend
+        throw new Error("El servidor no devolvió un token de acceso.");
       }
 
+      // GUARDAR DATOS DEL USUARIO ACTUAL
+      const currentUser: CurrentUser = {
+        id: responseData.idUsuario, 
+        fullName: responseData.nombres 
+          ? `${responseData.nombres} ${responseData.apellidos}` 
+          : responseData.username || "Usuario",
+        email: responseData.correo || loginData.email,
+        role: responseData.rol || "USER", // Rol por defecto 
+      };
+
+      localStorage.setItem("currentUser", JSON.stringify(currentUser));
+
+      Swal.fire({
+        icon: "success",
+        title: "¡Inicio de sesión exitoso!",
+        text: `Bienvenido, ${currentUser.fullName}`,
+        timer: 1500,
+        showConfirmButton: false
+      }).then(() => {
+        if (currentUser.role === "ADMIN" || currentUser.role === "ROLE_ADMIN") {
+          navigate(routes.adminDashboardPage);
+        } else {
+          navigate(routes.conceptPage);
+        }
+      });
+
+    } catch (error) {
+      console.error("Login error:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error de conexión",
+        text: "No se pudo conectar con el servidor o la respuesta fue inválida.",
+      });
+    } finally {
       setIsLoading(false);
-    }, 400);
+    }
   };
 
   return (
