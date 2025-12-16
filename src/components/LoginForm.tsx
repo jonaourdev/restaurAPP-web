@@ -23,7 +23,7 @@ interface CurrentUser {
 
 // IMPORTANTE: Spring Security con el filtro JWT por defecto escucha en "/login" (puerto 8090)
 // No suele estar bajo "/api/v1" a menos que lo hayas configurado así explícitamente.
-const API_LOGIN_URL = "http://localhost:8090/login";
+const API_LOGIN_URL = "http://localhost:8090/api/v1/auth/login";
 
 function LoginForm() {
   const navigate = useNavigate();
@@ -56,14 +56,13 @@ function LoginForm() {
     }
 
     try {
-      // 1. Petición de Login al Backend
       const response = await fetch(API_LOGIN_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // Enviamos 'correo' y 'password' porque así lo espera tu DTO en el backend
-        // (y tu filtro JWT lo lee de ahí)
+        // 2. CORRECCIÓN IMPORTANTE:
+        // Tu Backend (AuthRequestDTO) espera "email", no "correo".
         body: JSON.stringify({
-          correo: loginData.email,
+          email: loginData.email, 
           password: loginData.password,
         }),
       });

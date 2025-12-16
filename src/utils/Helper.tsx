@@ -43,7 +43,7 @@ export type Formative = {
   conceptId: number;
   name: string;
   description: string;
-  image?: string; // Agregado para consistencia con DTO
+  image?: string;
 };
 
 // Interfaz para los Aportes
@@ -68,8 +68,11 @@ const STORAGE_KEYS = {
 const API_BASE_URL = "http://localhost:8090/api/v1";
 export { API_BASE_URL };
 
-/* --- Helpers de Autenticación (NUEVO) --- */
-function getAuthHeaders() {
+/* --- HELPERS PRIVADOS DE AUTENTICACIÓN Y RED (NUEVO) --- 
+  Esta lógica centraliza el manejo de tokens y errores 401.
+*/
+
+function getAuthHeaders(): HeadersInit {
   const token = localStorage.getItem("token");
   return {
     "Content-Type": "application/json",
@@ -77,7 +80,40 @@ function getAuthHeaders() {
   };
 }
 
+/**
+ * Función wrapper para fetch que maneja automáticamente:
+ * 1. Inyección de Headers con Token.
+ * 2. Detección de sesión expirada (401/403) -> Redirección al Login.
+ */
+async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Response> {
+  const headers = { ...getAuthHeaders(), ...(options.headers || {}) };
+  
+  const response = await fetch(url, {
+    ...options,
+    headers: headers as HeadersInit,
+  });
+
+  // MANEJO CRÍTICO DE EXPIRACIÓN
+  if (response.status === 401 || response.status === 403) {
+    console.warn("Sesión expirada o no autorizada. Redirigiendo al login...");
+    
+    // 1. Limpiar credenciales
+    localStorage.removeItem("token");
+    localStorage.removeItem("currentUser");
+    
+    // 2. Redirigir forzosamente
+    // Usamos window.location porque este helper no es un componente React
+    window.location.href = "/loginPage";
+    
+    // 3. Detener flujo lanzando error
+    throw new Error("Tu sesión ha expirado. Por favor ingresa nuevamente.");
+  }
+
+  return response;
+}
+
 /* --- Helpers Generales --- */
+
 function getInitialData<T>(key: string, defaultData: T[]): T[] {
   try {
     const stored = localStorage.getItem(key);
@@ -100,7 +136,6 @@ function getCurrentUserId(): number {
     const storedUser = localStorage.getItem("currentUser");
     if (storedUser) {
       const user = JSON.parse(storedUser);
-      // Asegurarse de que el objeto user tenga la propiedad 'id' mapeada correctamente
       if (user && user.id) return user.id;
     }
   } catch (e) {
@@ -111,14 +146,12 @@ function getCurrentUserId(): number {
   );
 }
 
-/* --- API Genérica --- */
+/* --- Función POST Genérica (Ahora usa fetchWithAuth) --- */
 async function postToApi<T>(endpoint: string, payload: T): Promise<void> {
   const url = `${API_BASE_URL}/${endpoint}`;
   
-  // AHORA USA getAuthHeaders() para incluir el token
-  const response = await fetch(url, {
+  const response = await fetchWithAuth(url, {
     method: "POST",
-    headers: getAuthHeaders(), 
     body: JSON.stringify(payload),
   });
 
@@ -137,19 +170,19 @@ const initialFamilies: Family[] = [
   {
     idFamilies: 1,
     name: "Columna",
-    descriptions: "...",
-    componentItemn: "...",
+    descriptions: "Elemento arquitectónico vertical...",
+    componentItemn: "Base, Fuste, Capitel",
     image: "/assets/columna.png",
     subConcepto: [],
   },
 ];
 const initialFormatives: Formative[] = [
-  { conceptId: 1, name: "Patrimonio", description: "..." },
+  { conceptId: 1, name: "Patrimonio", description: "Conjunto de bienes..." },
 ];
 
-/* --- Helper Exportado --- */
+/* --- Helper Exportado Principal --- */
 export const dataHelper = {
-  // LECTURA LOCAL (No requiere cambios, usa localStorage del navegador)
+  // LECTURA LOCAL (Legacy / Fallback)
   getTechnicalFamilies(): Family[] {
     return getInitialData(STORAGE_KEYS.FAMILIES, initialFamilies);
   },
@@ -168,63 +201,66 @@ export const dataHelper = {
     return this.getFormativeConcepts().find((c) => c.conceptId === id);
   },
 
-  // LECTURA REAL (Dashboard y Listados) - AHORA CON HEADERS DE AUTH
+  // -----------------------------------------------------------------------
+  // LECTURA REAL (Con protección automática de Token y Expiración)
+  // -----------------------------------------------------------------------
+
   async getAllAportes(): Promise<Aporte[]> {
     try {
-      const res = await fetch(`${API_BASE_URL}/aportes`, {
-        headers: getAuthHeaders() // Auth header agregado
-      });
+      const res = await fetchWithAuth(`${API_BASE_URL}/aportes`);
       return res.ok ? await res.json() : [];
-    } catch {
+    } catch (error) {
+      console.error("Error fetching aportes:", error);
+      // Si el error fue por expiración (throw en fetchWithAuth), se propaga y redirige.
+      // Si es otro error de red, retornamos vacío para no romper la UI.
       return [];
     }
   },
+
   async getRealFamilias(): Promise<FamiliaDTO[]> {
     try {
-      const res = await fetch(`${API_BASE_URL}/familias`, {
-        headers: getAuthHeaders() // Auth header agregado
-      });
+      const res = await fetchWithAuth(`${API_BASE_URL}/familias`);
       return res.ok ? await res.json() : [];
-    } catch {
+    } catch (error) {
+      console.error("Error fetching familias:", error);
       return [];
     }
   },
+
   async getRealTecnicos(): Promise<ConceptoTecnicoDTO[]> {
     try {
-      const res = await fetch(`${API_BASE_URL}/conceptos-tecnicos`, {
-        headers: getAuthHeaders() // Auth header agregado
-      });
+      const res = await fetchWithAuth(`${API_BASE_URL}/conceptos-tecnicos`);
       return res.ok ? await res.json() : [];
-    } catch {
+    } catch (error) {
+      console.error("Error fetching tecnicos:", error);
       return [];
     }
   },
+
   async getRealFormativos(): Promise<ConceptoFormativoDTO[]> {
     try {
-      const res = await fetch(`${API_BASE_URL}/conceptos-formativos`, {
-        headers: getAuthHeaders() // Auth header agregado
-      });
+      const res = await fetchWithAuth(`${API_BASE_URL}/conceptos-formativos`);
       return res.ok ? await res.json() : [];
-    } catch {
+    } catch (error) {
+      console.error("Error fetching formativos:", error);
       return [];
     }
   },
 
-  // LECTURA REAL (CONCEPTOS EN DETALLE)
   async getRealFormativeId(id: number) {
     try {
-      const res = await fetch(`${API_BASE_URL}/conceptos-formativos/${id}`, {
-        headers: getAuthHeaders() // Auth header agregado
-      });
+      const res = await fetchWithAuth(`${API_BASE_URL}/conceptos-formativos/${id}`);
       if (!res.ok) return null;
-
       return await res.json();
-    } catch {
+    } catch (error) {
+      console.error("Error fetching formative detail:", error);
       return null;
     }
   },
 
-  // --- ESCRITURA (USA postToApi QUE YA TIENE LOS HEADERS) ---
+  // -----------------------------------------------------------------------
+  // ESCRITURA (Usan postToApi que ya integra fetchWithAuth)
+  // -----------------------------------------------------------------------
 
   // 1. Proponer Familia
   async addTechnicalFamily(payload: {
@@ -234,13 +270,11 @@ export const dataHelper = {
     image?: string;
   }): Promise<void> {
     const userId = getCurrentUserId();
-    // Enviamos a /aportes
     await postToApi("aportes", {
       idUsuario: userId,
       tipoObjeto: "FAMILIA",
       nombrePropuesto: payload.name,
       descripcionPropuesto: payload.descriptions || "Sin descripción.",
-      // Puedes adaptar el backend para recibir imagen o componentes en la descripción si es necesario
     });
   },
 
@@ -251,7 +285,6 @@ export const dataHelper = {
     image?: string;
   }): Promise<void> {
     const userId = getCurrentUserId();
-    // Enviamos a /aportes
     await postToApi("aportes", {
       idUsuario: userId,
       tipoObjeto: "FORMATIVO",
@@ -266,7 +299,6 @@ export const dataHelper = {
     payload: { name: string; description?: string; image?: string }
   ): Promise<void> {
     const userId = getCurrentUserId();
-    // Enviamos a /aportes
     await postToApi("aportes", {
       idUsuario: userId,
       tipoObjeto: "TECNICO",
@@ -292,10 +324,9 @@ export const dataHelper = {
 
     const url = `${API_BASE_URL}/aportes/${idAporte}/revision`;
 
-    // AHORA USA getAuthHeaders()
-    const response = await fetch(url, {
+    // Usamos fetchWithAuth para PUT
+    const response = await fetchWithAuth(url, {
       method: "PUT",
-      headers: getAuthHeaders(), 
       body: JSON.stringify(payload),
     });
 
@@ -309,6 +340,7 @@ export const dataHelper = {
     }
   },
 
+  // Utilidades de limpieza
   resetToInitial() {
     saveToStorage(STORAGE_KEYS.FAMILIES, initialFamilies);
     saveToStorage(STORAGE_KEYS.FORMATIVES, initialFormatives);
