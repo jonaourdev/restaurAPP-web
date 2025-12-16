@@ -1,4 +1,5 @@
 // src/utils/Helper.tsx
+import axios from "axios";
 
 // --- INTERFACES DTO ---
 export interface FamiliaDTO {
@@ -68,52 +69,52 @@ const STORAGE_KEYS = {
 const API_BASE_URL = "http://localhost:8090/api/v1";
 export { API_BASE_URL };
 
-/* --- HELPERS PRIVADOS DE AUTENTICACIÓN Y RED (NUEVO) --- 
-  Esta lógica centraliza el manejo de tokens y errores 401.
-*/
+// =========================================================================
+// CONFIGURACIÓN DE AXIOS (Instancia Global)
+// =========================================================================
 
-function getAuthHeaders(): HeadersInit {
-  const token = localStorage.getItem("token");
-  return {
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
     "Content-Type": "application/json",
-    ...(token ? { "Authorization": `Bearer ${token}` } : {}),
-  };
-}
+  },
+});
 
-/**
- * Función wrapper para fetch que maneja automáticamente:
- * 1. Inyección de Headers con Token.
- * 2. Detección de sesión expirada (401/403) -> Redirección al Login.
- */
-async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Response> {
-  const headers = { ...getAuthHeaders(), ...(options.headers || {}) };
-  
-  const response = await fetch(url, {
-    ...options,
-    headers: headers as HeadersInit,
-  });
+// 1. INTERCEPTOR DE REQUEST: Inyecta el Token automáticamente
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
-  // MANEJO CRÍTICO DE EXPIRACIÓN
-  if (response.status === 401 || response.status === 403) {
-    console.warn("Sesión expirada o no autorizada. Redirigiendo al login...");
+// 2. INTERCEPTOR DE RESPONSE: Maneja errores globales (Expiración)
+api.interceptors.response.use(
+  (response) => response.data, // Devuelve directamente la 'data' limpia
+  (error) => {
+    // Si la respuesta es 401 (Unauthorized) o 403 (Forbidden)
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+      console.warn("Sesión expirada o inválida. Cerrando sesión...");
+      
+      // Limpiar credenciales
+      localStorage.removeItem("token");
+      localStorage.removeItem("currentUser");
+      
+      // Redirigir al login
+      window.location.href = "/loginPage";
+    }
     
-    // 1. Limpiar credenciales
-    localStorage.removeItem("token");
-    localStorage.removeItem("currentUser");
-    
-    // 2. Redirigir forzosamente
-    // Usamos window.location porque este helper no es un componente React
-    window.location.href = "/loginPage";
-    
-    // 3. Detener flujo lanzando error
-    throw new Error("Tu sesión ha expirado. Por favor ingresa nuevamente.");
+    // Propagamos el error para que los componentes puedan mostrar alertas específicas si es necesario
+    return Promise.reject(error);
   }
+);
 
-  return response;
-}
 
-/* --- Helpers Generales --- */
-
+/* --- Helpers Locales --- */
 function getInitialData<T>(key: string, defaultData: T[]): T[] {
   try {
     const stored = localStorage.getItem(key);
@@ -141,28 +142,19 @@ function getCurrentUserId(): number {
   } catch (e) {
     console.error(e);
   }
-  throw new Error(
-    "No se pudo identificar al usuario. Por favor inicia sesión."
-  );
+  throw new Error("No se pudo identificar al usuario. Por favor inicia sesión.");
 }
 
-/* --- Función POST Genérica (Ahora usa fetchWithAuth) --- */
-async function postToApi<T>(endpoint: string, payload: T): Promise<void> {
-  const url = `${API_BASE_URL}/${endpoint}`;
-  
-  const response = await fetchWithAuth(url, {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
-
-  if (!response.ok) {
-    let errorMsg = `Error ${response.status}`;
-    try {
-      const data = await response.json();
-      errorMsg = data.message || JSON.stringify(data);
-    } catch {}
-    throw new Error(errorMsg);
+/* --- Función Auxiliar para manejar errores de Axios --- */
+function handleAxiosError(error: any): never {
+  let message = "Error desconocido de red";
+  if (axios.isAxiosError(error)) {
+    // Intentamos leer el mensaje que manda el backend
+    message = error.response?.data?.message || error.message;
+  } else if (error instanceof Error) {
+    message = error.message;
   }
+  throw new Error(message);
 }
 
 /* --- Mock Data (Datos Locales de Respaldo) --- */
@@ -180,9 +172,9 @@ const initialFormatives: Formative[] = [
   { conceptId: 1, name: "Patrimonio", description: "Conjunto de bienes..." },
 ];
 
-/* --- Helper Exportado Principal --- */
+/* --- Objeto Principal Exportado --- */
 export const dataHelper = {
-  // LECTURA LOCAL (Legacy / Fallback)
+  // LECTURA LOCAL (Legacy)
   getTechnicalFamilies(): Family[] {
     return getInitialData(STORAGE_KEYS.FAMILIES, initialFamilies);
   },
@@ -201,26 +193,23 @@ export const dataHelper = {
     return this.getFormativeConcepts().find((c) => c.conceptId === id);
   },
 
-  // -----------------------------------------------------------------------
-  // LECTURA REAL (Con protección automática de Token y Expiración)
-  // -----------------------------------------------------------------------
+  // =======================================================================
+  // LECTURA REAL (Con AXIOS)
+  // =======================================================================
 
   async getAllAportes(): Promise<Aporte[]> {
     try {
-      const res = await fetchWithAuth(`${API_BASE_URL}/aportes`);
-      return res.ok ? await res.json() : [];
+      // api.get ya devuelve la data gracias al interceptor
+      return await api.get<any, Aporte[]>("/aportes");
     } catch (error) {
       console.error("Error fetching aportes:", error);
-      // Si el error fue por expiración (throw en fetchWithAuth), se propaga y redirige.
-      // Si es otro error de red, retornamos vacío para no romper la UI.
       return [];
     }
   },
 
   async getRealFamilias(): Promise<FamiliaDTO[]> {
     try {
-      const res = await fetchWithAuth(`${API_BASE_URL}/familias`);
-      return res.ok ? await res.json() : [];
+      return await api.get<any, FamiliaDTO[]>("/familias");
     } catch (error) {
       console.error("Error fetching familias:", error);
       return [];
@@ -229,8 +218,7 @@ export const dataHelper = {
 
   async getRealTecnicos(): Promise<ConceptoTecnicoDTO[]> {
     try {
-      const res = await fetchWithAuth(`${API_BASE_URL}/conceptos-tecnicos`);
-      return res.ok ? await res.json() : [];
+      return await api.get<any, ConceptoTecnicoDTO[]>("/conceptos-tecnicos");
     } catch (error) {
       console.error("Error fetching tecnicos:", error);
       return [];
@@ -239,8 +227,7 @@ export const dataHelper = {
 
   async getRealFormativos(): Promise<ConceptoFormativoDTO[]> {
     try {
-      const res = await fetchWithAuth(`${API_BASE_URL}/conceptos-formativos`);
-      return res.ok ? await res.json() : [];
+      return await api.get<any, ConceptoFormativoDTO[]>("/conceptos-formativos");
     } catch (error) {
       console.error("Error fetching formativos:", error);
       return [];
@@ -249,18 +236,16 @@ export const dataHelper = {
 
   async getRealFormativeId(id: number) {
     try {
-      const res = await fetchWithAuth(`${API_BASE_URL}/conceptos-formativos/${id}`);
-      if (!res.ok) return null;
-      return await res.json();
+      return await api.get<any, any>(`/conceptos-formativos/${id}`);
     } catch (error) {
       console.error("Error fetching formative detail:", error);
       return null;
     }
   },
 
-  // -----------------------------------------------------------------------
-  // ESCRITURA (Usan postToApi que ya integra fetchWithAuth)
-  // -----------------------------------------------------------------------
+  // =======================================================================
+  // ESCRITURA (POST / PUT con AXIOS)
+  // =======================================================================
 
   // 1. Proponer Familia
   async addTechnicalFamily(payload: {
@@ -269,13 +254,17 @@ export const dataHelper = {
     componentItemn?: string;
     image?: string;
   }): Promise<void> {
-    const userId = getCurrentUserId();
-    await postToApi("aportes", {
-      idUsuario: userId,
-      tipoObjeto: "FAMILIA",
-      nombrePropuesto: payload.name,
-      descripcionPropuesto: payload.descriptions || "Sin descripción.",
-    });
+    try {
+      const userId = getCurrentUserId();
+      await api.post("/aportes", {
+        idUsuario: userId,
+        tipoObjeto: "FAMILIA",
+        nombrePropuesto: payload.name,
+        descripcionPropuesto: payload.descriptions || "Sin descripción.",
+      });
+    } catch (error) {
+      handleAxiosError(error);
+    }
   },
 
   // 2. Proponer Concepto Formativo
@@ -284,13 +273,17 @@ export const dataHelper = {
     description: string;
     image?: string;
   }): Promise<void> {
-    const userId = getCurrentUserId();
-    await postToApi("aportes", {
-      idUsuario: userId,
-      tipoObjeto: "FORMATIVO",
-      nombrePropuesto: payload.name,
-      descripcionPropuesto: payload.description,
-    });
+    try {
+      const userId = getCurrentUserId();
+      await api.post("/aportes", {
+        idUsuario: userId,
+        tipoObjeto: "FORMATIVO",
+        nombrePropuesto: payload.name,
+        descripcionPropuesto: payload.description,
+      });
+    } catch (error) {
+      handleAxiosError(error);
+    }
   },
 
   // 3. Proponer Subconcepto Técnico
@@ -298,14 +291,18 @@ export const dataHelper = {
     familyId: number,
     payload: { name: string; description?: string; image?: string }
   ): Promise<void> {
-    const userId = getCurrentUserId();
-    await postToApi("aportes", {
-      idUsuario: userId,
-      tipoObjeto: "TECNICO",
-      nombrePropuesto: payload.name,
-      descripcionPropuesto: payload.description || "Sin descripción.",
-      idFamilia: familyId,
-    });
+    try {
+      const userId = getCurrentUserId();
+      await api.post("/aportes", {
+        idUsuario: userId,
+        tipoObjeto: "TECNICO",
+        nombrePropuesto: payload.name,
+        descripcionPropuesto: payload.description || "Sin descripción.",
+        idFamilia: familyId,
+      });
+    } catch (error) {
+      handleAxiosError(error);
+    }
   },
 
   // --- REVISIÓN (ADMIN) ---
@@ -314,29 +311,15 @@ export const dataHelper = {
     estado: "APROBADO" | "RECHAZADO",
     motivo: string = ""
   ): Promise<void> {
-    const adminId = getCurrentUserId(); 
-
-    const payload = {
-      idAdmin: adminId,
-      estado: estado,
-      motivoRechazo: motivo,
-    };
-
-    const url = `${API_BASE_URL}/aportes/${idAporte}/revision`;
-
-    // Usamos fetchWithAuth para PUT
-    const response = await fetchWithAuth(url, {
-      method: "PUT",
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      let errorMsg = "Error al procesar la revisión.";
-      try {
-        const data = await response.json();
-        errorMsg = data.message || JSON.stringify(data);
-      } catch {}
-      throw new Error(errorMsg);
+    try {
+      const adminId = getCurrentUserId();
+      await api.put(`/aportes/${idAporte}/revision`, {
+        idAdmin: adminId,
+        estado: estado,
+        motivoRechazo: motivo,
+      });
+    } catch (error) {
+      handleAxiosError(error);
     }
   },
 
