@@ -1,6 +1,8 @@
+// router.tsx (o como se llame tu archivo de rutas)
+
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import Layout from "./components/Layout";
-import { ProtectedRoute } from "./components/ProtectedRoute"; // <--- Importamos el componente
+import { ProtectedRoute } from "./components/ProtectedRoute";
 
 // Imports de tus páginas
 import LandingPage from "./pages/LandingPage";
@@ -24,16 +26,20 @@ export const routes = {
   landing: "/",
   loginPage: "/loginPage",
   registerPage: "/registerPage",
+
   conceptPage: "/conceptPage",
   FormativeConceptPage: "/FormativeConceptPage",
   TechnicalConceptPage: "/TechnicalConceptPage",
+
   conceptDetail: "/concepto/:id",
   familyDetail: "/familia/:id",
   technicalConceptDetailPage: "/technical/concept/:id",
+
   AddChoice: "/AddChoicePage",
   addFormative: "/add/formative",
   addFamily: "/add/family",
   addTechnical: "/add/technical",
+
   adminDashboardPage: "/admin/dashboard",
   adminLayout: "/admin",
   AdminConcept: "/admin/concepts",
@@ -41,30 +47,44 @@ export const routes = {
 
 const router = createBrowserRouter([
   // ---------------------------------------------------------------
-  // 1. RUTAS PÚBLICAS (Cualquiera puede entrar)
+  // 1. RUTAS PÚBLICAS (no requieren login)
   // ---------------------------------------------------------------
   { path: routes.landing, element: <LandingPage /> },
   { path: routes.loginPage, element: <LoginPage /> },
   { path: routes.registerPage, element: <RegisterPage /> },
 
   // ---------------------------------------------------------------
-  // 2. RUTAS PARA USUARIOS LOGUEADOS (USER y ADMIN)
+  // 2. RUTAS CON LAYOUT GENERAL (navbar, footer, etc.)
   // ---------------------------------------------------------------
   {
     element: <Layout />,
     children: [
+      // 2.1 Rutas visibles para INVITADOS + LOGUEADOS
       {
-        // AQUI DEFINIMOS QUE TANTO 'USER' COMO 'ADMIN' PUEDEN ENTRAR
-        element: <ProtectedRoute allowedRoles={["USER", "ADMIN"]} />,
+        element: <ProtectedRoute allowGuest={true} />,
         children: [
           { path: routes.conceptPage, element: <ConceptPage /> },
-          { path: routes.FormativeConceptPage, element: <FormativeConceptPage /> },
-          { path: routes.TechnicalConceptPage, element: <TechnicalConceptPage /> },
+          {
+            path: routes.FormativeConceptPage,
+            element: <FormativeConceptPage />,
+          },
+          {
+            path: routes.TechnicalConceptPage,
+            element: <TechnicalConceptPage />,
+          },
           { path: routes.conceptDetail, element: <FormativeConceptDetail /> },
           { path: routes.familyDetail, element: <FamiliyDetailPage /> },
-          { path: routes.technicalConceptDetailPage, element: <TechnicalConceptDetailPage /> },
-          
-          // Rutas para agregar contenido (disponibles para ambos roles)
+          {
+            path: routes.technicalConceptDetailPage,
+            element: <TechnicalConceptDetailPage />,
+          },
+        ],
+      },
+
+      // 2.2 Rutas SOLO para usuarios logueados (USER + ADMIN)
+      {
+        element: <ProtectedRoute allowedRoles={["USER", "ADMIN"]} />,
+        children: [
           { path: routes.AddChoice, element: <AddChoicePage /> },
           { path: routes.addFormative, element: <AddFormativePage /> },
           { path: routes.addFamily, element: <AddFamilyPage /> },
@@ -78,14 +98,17 @@ const router = createBrowserRouter([
   // 3. RUTAS EXCLUSIVAS DE ADMINISTRADOR (Solo ADMIN)
   // ---------------------------------------------------------------
   {
-    path: routes.adminLayout,
-    // AQUI DEFINIMOS QUE SOLO EL ROL 'ADMIN' PUEDE ENTRAR
-    element: <ProtectedRoute allowedRoles={["ADMIN"]} />, 
+    path: routes.adminLayout, // "/admin"
+    element: <ProtectedRoute allowedRoles={["ADMIN"]} />,
     children: [
       {
         element: <AdminLayout />,
         children: [
-          { index: true, element: <Navigate to="dashboard" replace /> },
+          // /admin → redirige a /admin/dashboard
+          {
+            index: true,
+            element: <Navigate to={routes.adminDashboardPage} replace />,
+          },
           { path: routes.adminDashboardPage, element: <AdminDashboardPage /> },
           { path: routes.AdminConcept, element: <AdminConceptPage /> },
         ],
