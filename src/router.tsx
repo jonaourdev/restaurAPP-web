@@ -1,6 +1,6 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import {createBrowserRouter, Navigate} from "react-router-dom";
 import Layout from "./components/Layout";
-import { ProtectedRoute } from "./components/ProtectedRoute"; // <--- Importamos el componente
+import {ProtectedRoute} from "./components/ProtectedRoute"; // <--- Importamos el componente
 
 // Imports de tus páginas
 import LandingPage from "./pages/LandingPage";
@@ -19,6 +19,8 @@ import AddChoicePage from "./pages/AddChoicePage";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import AdminLayout from "./components/Admin/AdminLayout";
 import AdminConceptPage from "./pages/admin/AdminConceptPage";
+import SubfamilyDetail from "./components/TechnicalConcepts/SubfamilyDetail";
+import FormativeConceptDetailPage from "./pages/FormativeConceptDetailPage";
 
 export const routes = {
   landing: "/",
@@ -30,6 +32,7 @@ export const routes = {
   conceptDetail: "/concepto/:id",
   familyDetail: "/familia/:id",
   technicalConceptDetailPage: "/technical/concept/:id",
+  FormativeConceptDetailPage: "/formative/concepto/:id",
   AddChoice: "/AddChoicePage",
   addFormative: "/add/formative",
   addFamily: "/add/family",
@@ -37,15 +40,16 @@ export const routes = {
   adminDashboardPage: "/admin/dashboard",
   adminLayout: "/admin",
   AdminConcept: "/admin/concepts",
+  SubfamilyDetail: "/subfamilia/:id",
 } as const;
 
 const router = createBrowserRouter([
   // ---------------------------------------------------------------
   // 1. RUTAS PÚBLICAS (Cualquiera puede entrar)
   // ---------------------------------------------------------------
-  { path: routes.landing, element: <LandingPage /> },
-  { path: routes.loginPage, element: <LoginPage /> },
-  { path: routes.registerPage, element: <RegisterPage /> },
+  {path: routes.landing, element: <LandingPage />},
+  {path: routes.loginPage, element: <LoginPage />},
+  {path: routes.registerPage, element: <RegisterPage />},
 
   // ---------------------------------------------------------------
   // 2. RUTAS PARA USUARIOS LOGUEADOS (USER y ADMIN)
@@ -57,18 +61,28 @@ const router = createBrowserRouter([
         // AQUI DEFINIMOS QUE TANTO 'USER' COMO 'ADMIN' PUEDEN ENTRAR
         element: <ProtectedRoute allowedRoles={["USER", "ADMIN"]} />,
         children: [
-          { path: routes.conceptPage, element: <ConceptPage /> },
-          { path: routes.FormativeConceptPage, element: <FormativeConceptPage /> },
-          { path: routes.TechnicalConceptPage, element: <TechnicalConceptPage /> },
-          { path: routes.conceptDetail, element: <FormativeConceptDetail /> },
-          { path: routes.familyDetail, element: <FamiliyDetailPage /> },
-          { path: routes.technicalConceptDetailPage, element: <TechnicalConceptDetailPage /> },
-          
+          {path: routes.conceptPage, element: <ConceptPage />},
+          {
+            path: routes.FormativeConceptPage,
+            element: <FormativeConceptPage />,
+          },
+          {
+            path: routes.TechnicalConceptPage,
+            element: <TechnicalConceptPage />,
+          },
+          {path: routes.conceptDetail, element: <FormativeConceptDetail />},
+          {path: routes.familyDetail, element: <FamiliyDetailPage />},
+          {
+            path: routes.technicalConceptDetailPage,
+            element: <TechnicalConceptDetailPage />,
+          },
+          {path: routes.SubfamilyDetail, element: <SubfamilyDetail />},
+
           // Rutas para agregar contenido (disponibles para ambos roles)
-          { path: routes.AddChoice, element: <AddChoicePage /> },
-          { path: routes.addFormative, element: <AddFormativePage /> },
-          { path: routes.addFamily, element: <AddFamilyPage /> },
-          { path: routes.addTechnical, element: <AddTechnicalPage /> },
+          {path: routes.AddChoice, element: <AddChoicePage />},
+          {path: routes.addFormative, element: <AddFormativePage />},
+          {path: routes.addFamily, element: <AddFamilyPage />},
+          {path: routes.addTechnical, element: <AddTechnicalPage />},
         ],
       },
     ],
@@ -80,14 +94,14 @@ const router = createBrowserRouter([
   {
     path: routes.adminLayout,
     // AQUI DEFINIMOS QUE SOLO EL ROL 'ADMIN' PUEDE ENTRAR
-    element: <ProtectedRoute allowedRoles={["ADMIN"]} />, 
+    element: <ProtectedRoute allowedRoles={["ADMIN"]} />,
     children: [
       {
         element: <AdminLayout />,
         children: [
-          { index: true, element: <Navigate to="dashboard" replace /> },
-          { path: routes.adminDashboardPage, element: <AdminDashboardPage /> },
-          { path: routes.AdminConcept, element: <AdminConceptPage /> },
+          {index: true, element: <Navigate to="dashboard" replace />},
+          {path: routes.adminDashboardPage, element: <AdminDashboardPage />},
+          {path: routes.AdminConcept, element: <AdminConceptPage />},
         ],
       },
     ],

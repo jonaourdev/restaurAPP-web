@@ -1,104 +1,118 @@
-import { useEffect, useState } from "react";
-import { Container } from "react-bootstrap";
-import { useParams, Link, useNavigate } from "react-router-dom";
-import { dataHelper, type SubConcept, type Family } from "../../utils/Helper";
-import { routes } from "../../router";
+import {useEffect, useState} from "react";
+import {useParams, useNavigate, Link} from "react-router-dom";
+import {Container} from "react-bootstrap";
+import {dataHelper, type ConceptoTecnicoDTO} from "../../utils/Helper";
 import "../../css/ConceptCards/TechnicalConceptDetail.css";
 
-export default function TechnicalConceptDetail() {
-  const { id } = useParams<{ id?: string }>();
-  const navigate = useNavigate();
-  const conceptId = Number(id);
+type RouteParams = {
+  id?: string;
+};
 
-  const [subConcept, setSubConcept] = useState<SubConcept | undefined>();
-  const [family, setFamily] = useState<Family | undefined>();
+export default function TechnicalConceptDetail() {
+  const {id} = useParams<RouteParams>();
+  const navigate = useNavigate();
+
+  const [concept, setConcept] = useState<ConceptoTecnicoDTO | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!id || Number.isNaN(conceptId)) return;
+    const conceptId = Number(id);
 
-    const families = dataHelper.getTechnicalFamilies();
-    let foundSub: SubConcept | undefined;
-    let foundFamily: Family | undefined;
-
-    for (const f of families) {
-      const s = f.subConcepto?.find((sc) => sc.conceptId === conceptId);
-      if (s) {
-        foundSub = s;
-        foundFamily = f;
-        break;
-      }
+    if (!id || Number.isNaN(conceptId)) {
+      setError("Id de concepto inválido.");
+      setLoading(false);
+      return;
     }
 
-    setSubConcept(foundSub);
-    setFamily(foundFamily);
-  }, [id, conceptId]);
+    let isMounted = true;
 
-  if (!subConcept) {
+    const fetchConcept = async () => {
+      try {
+        setLoading(true);
+        const dto = await dataHelper.getRealTechnicalById(conceptId);
+
+        if (!isMounted) return;
+
+        if (!dto) {
+          setError("No existe el concepto solicitado.");
+          setConcept(null);
+        } else {
+          setConcept(dto);
+          setError(null);
+        }
+      } catch (e) {
+        if (!isMounted) return;
+        console.error("Error al cargar concepto técnico:", e);
+        setError("Error al cargar el concepto técnico.");
+        setConcept(null);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchConcept();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [id]);
+
+  // --- estados de carga / error / no encontrado ---
+
+  if (loading) {
     return (
       <Container className="detail-container">
-        <div className="detail-card">
-          <h2>Concepto no encontrado</h2>
-          <p>No existe el concepto solicitado.</p>
-        </div>
-
-        <div className="detail-actions">
-          <button className="btn btn-primary" onClick={() => navigate(-1)}>
-            Volver
-          </button>
+        <div className="detail-card text-center">
+          <p>Cargando concepto técnico...</p>
         </div>
       </Container>
     );
   }
 
-  return (
-    <Container className="detail-container">
-      <div className="detail-card shadow-sm">
-        {/* HEADER */}
-        <div className="detail-header">
-          <h1>{subConcept.name}</h1>
-
-          {family && (
-            <p>
-              Familia:{" "}
-              <Link
-                to={`/familia/${family.idFamilies}`}
-                className="fam-link text-decoration-none"
-              >
-                {family.name}
-              </Link>
-            </p>
-          )}
+  if (error || !concept) {
+    return (
+      <Container className="detail-container">
+        <div className="detail-card text-center">
+          <h2 className="text-danger">Concepto no encontrado</h2>
+          <p>{error ?? "No existe el concepto solicitado."}</p>
         </div>
 
-        {/* IMAGEN */}
-        {subConcept.image && (
-          <img
-            src={subConcept.image}
-            alt={subConcept.name}
-            className="detail-image"
-          />
+        <div className="detail-actions">
+          <button className="btn btn-primary" onClick={() => navigate(-1)}>
+            Volver a la subfamilia
+          </button>
+
+          <Link to="/conceptos/tecnicos" className="btn btn-outline-secondary">
+            Volver al listado
+          </Link>
+        </div>
+      </Container>
+    );
+  }
+
+  // --- vista con el concepto encontrado ---
+
+  return (
+    <Container className="detail-container">
+      <div className="detail-card">
+        <h2>{concept.nombreTecnico}</h2>
+
+        {concept.descripcionTecnico && (
+          <p className="mt-3">{concept.descripcionTecnico}</p>
         )}
 
-        {/* DESCRIPCIÓN */}
-        <p className="detail-description">
-          {subConcept.description ?? "Sin descripción disponible."}
-        </p>
+        {!concept.descripcionTecnico && (
+          <p className="mt-3 text-muted">Sin descripción disponible.</p>
+        )}
       </div>
 
-      {/* BOTONES FUERA DE LA CARD, ABAJO DE LA PÁGINA */}
       <div className="detail-actions">
-        <Link to={routes.TechnicalConceptPage} className="btn btn-primary">
-          Volver
-        </Link>
-
-        {family && (
-          <Link
-            to={`/familia/${family.idFamilies}`}
-            className="btn btn-outline-primary"
-          >
-            Ver familia
-          </Link>
-        )}
+        <button className="btn btn-primary" onClick={() => navigate(-1)}>
+          Volver a la subfamilia
+        </button>
       </div>
     </Container>
   );
