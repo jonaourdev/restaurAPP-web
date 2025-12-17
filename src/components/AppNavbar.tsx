@@ -30,7 +30,7 @@ function AppNavbar() {
     <>
       <Navbar expand="lg" className="navCSS" sticky="top">
         <Container>
-          <Navbar.Brand as={Link} to={"/"}>
+          <Navbar.Brand as={Link} to={"/conceptPage"}>
             <img
               alt=""
               src="../src/assets/logo.png"
@@ -52,9 +52,6 @@ function AppNavbar() {
 
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="me-auto">
-              <Nav.Link as={Link} to={"/"}>
-                Home
-              </Nav.Link>
               <Nav.Link as={Link} to={"/conceptPage"}>
                 Conceptos
               </Nav.Link>
