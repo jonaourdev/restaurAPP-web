@@ -4,9 +4,12 @@ import React, { useState } from "react";
 import { Card, Form, Button, Container, Spinner } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import { routes } from "./../router";
-import { API_BASE_URL } from "../utils/Helper";
 import Swal from "sweetalert2";
+import axios from "axios"; // <--- 1. IMPORTAR AXIOS
 import "../css/AuthForm.css";
+
+// Puedes usar la constante API_BASE_URL del helper si quieres, o dejarlo directo
+const API_LOGIN_URL = "http://localhost:8090/api/v1/auth/login";
 
 interface LoginProps {
   email: string;
@@ -20,16 +23,12 @@ interface CurrentUser {
   role: string;
 }
 
-const API_LOGIN_URL = `${API_BASE_URL}/usuarios/login`;
-
 function LoginForm() {
   const navigate = useNavigate();
-
   const [loginData, setLoginData] = useState<LoginProps>({
     email: "",
     password: "",
   });
-
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -41,82 +40,85 @@ function LoginForm() {
     e.preventDefault();
     setIsLoading(true);
 
-    setTimeout(async () => {
-      // Validación de campos
-      if (!loginData.email || !loginData.password) {
-        Swal.fire({
-          icon: "warning",
-          title: "Campos incompletos",
-          text: "Por favor ingresa tu email y contraseña.",
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        const response = await fetch(API_LOGIN_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            correo: loginData.email,
-            password: loginData.password,
-          }),
-        });
-
-        if (!response.ok) {
-          let errorMessage = "Credenciales inválidas.";
-          try {
-            const errorData = await response.json();
-            if (errorData.message) errorMessage = errorData.message;
-          } catch (_) {}
-
-          Swal.fire({
-            icon: "error",
-            title: "Error de autenticación",
-            text: errorMessage,
-          });
-
-          setIsLoading(false);
-          return;
-        }
-
-        const userData = await response.json();
-
-        const currentUser: CurrentUser = {
-          id: userData.idUsuario,
-          fullName: `${userData.nombres} ${userData.apellidos}`,
-          email: userData.correo,
-          role: userData.rol,
-        };
-
-        localStorage.setItem("currentUser", JSON.stringify(currentUser));
-
-        Swal.fire({
-          icon: "success",
-          title: "¡Inicio de sesión exitoso!",
-          text: `Bienvenido, ${currentUser.fullName}`,
-        }).then(() => {
-          if (currentUser.role === "ADMIN") {
-            navigate(routes.adminDashboardPage);
-          } else {
-            navigate(routes.conceptPage);
-          }
-        });
-      } catch (error) {
-        Swal.fire({
-          icon: "error",
-          title: "Error de conexión",
-          text: "No se pudo conectar con el servidor.",
-        });
-      }
-
+    if (!loginData.email || !loginData.password) {
+      Swal.fire({
+        icon: "warning",
+        title: "Campos incompletos",
+        text: "Por favor ingresa tu email y contraseña.",
+      });
       setIsLoading(false);
-    }, 400);
+      return;
+    }
+
+    try {
+      // --- CAMBIO PRINCIPAL: USAR AXIOS ---
+      const response = await axios.post(API_LOGIN_URL, {
+        email: loginData.email,
+        password: loginData.password,
+      });
+
+      // Axios lanza error si falla, así que si llegamos aquí, es ÉXITO (200 OK)
+      const responseData = response.data;
+
+      // Guardar Token
+      if (responseData.token) {
+        localStorage.setItem("token", responseData.token);
+      } else {
+        throw new Error("El servidor no devolvió un token.");
+      }
+
+      // Guardar Usuario
+      const currentUser: CurrentUser = {
+        id: responseData.idUsuario,
+        fullName: responseData.nombres
+          ? `${responseData.nombres} ${responseData.apellidos}`
+          : responseData.username || "Usuario",
+        email: responseData.correo || loginData.email,
+        role: responseData.rol || "USER",
+      };
+
+      localStorage.setItem("currentUser", JSON.stringify(currentUser));
+
+      Swal.fire({
+        icon: "success",
+        title: "¡Inicio de sesión exitoso!",
+        text: `Bienvenido, ${currentUser.fullName}`,
+        timer: 1500,
+        showConfirmButton: false,
+      }).then(() => {
+        if (currentUser.role === "ADMIN" || currentUser.role === "ROLE_ADMIN") {
+          navigate(routes.adminDashboardPage);
+        } else {
+          navigate(routes.conceptPage);
+        }
+      });
+    } catch (error: any) {
+      console.error("Login error:", error);
+
+      // Manejo de errores simplificado con Axios
+      let errorMessage = "No se pudo conectar con el servidor.";
+
+      if (error.response) {
+        // El servidor respondió con un error (401, 400, 500...)
+        errorMessage =
+          error.response.data?.message || "Credenciales inválidas.";
+      }
+
+      Swal.fire({
+        icon: "error",
+        title: "Error de autenticación",
+        text: errorMessage,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
+    // ... (El resto de tu JSX queda EXACTAMENTE IGUAL) ...
     <Container className="d-flex align-items-center justify-content-center">
       <Card className="auth-card">
+        {/* ... Contenido del form ... */}
         <Card.Body>
           <div className="text-center">
             <Card.Title as="h1" className="h3 mb-1">
@@ -126,9 +128,9 @@ function LoginForm() {
               Ingresa abajo rellenando con tus datos
             </Card.Text>
           </div>
-
           <div className="mt-4">
             <Form noValidate onSubmit={handleSubmit}>
+              {/* Inputs de Email y Password idénticos a como los tienes */}
               <Form.Group className="mb-4" controlId="email">
                 <Form.Label className="text-muted">
                   Correo electrónico
@@ -142,7 +144,6 @@ function LoginForm() {
                   onChange={handleChange}
                 />
               </Form.Group>
-
               <Form.Group className="mb-4" controlId="password">
                 <Form.Label className="text-muted">Contraseña</Form.Label>
                 <Form.Control
@@ -154,7 +155,6 @@ function LoginForm() {
                   onChange={handleChange}
                 />
               </Form.Group>
-
               <div className="d-grid">
                 <Button
                   type="submit"
@@ -173,11 +173,14 @@ function LoginForm() {
                   )}
                 </Button>
               </div>
-
               <Card.Text className="text-center text-muted mt-4 mb-0">
                 ¿No tienes cuenta?{" "}
                 <Link to="/registerPage" className="auth-link">
                   Regístrate
+                </Link>
+                . Entrar como{" "}
+                <Link to="/conceptPage" className="auth-link">
+                  invitado
                 </Link>
                 .
               </Card.Text>

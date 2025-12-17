@@ -36,7 +36,16 @@ export default function AddChoice() {
               Subconcepto Técnico
             </Card.Title>
             <Card.Text className="choice-card-text">
-              Agregar un subconcepto (pertenece a una familia)
+              Agregar un subconcepto (pertenece a una subfamilia)
+            </Card.Text>
+          </Card.Body>
+        </Card>
+
+        <Card as={Link} to="/add/subfamily" className="choice-card">
+          <Card.Body>
+            <Card.Title className="choice-card-title">Subfamilia</Card.Title>
+            <Card.Text className="choice-card-text">
+              Agregar una subfamilia (pertenece a una familia)
             </Card.Text>
           </Card.Body>
         </Card>

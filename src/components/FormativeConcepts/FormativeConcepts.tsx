@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
-import { Container, Row, Col, Card, Button } from "react-bootstrap";
-import { Link } from "react-router-dom";
-import { dataHelper, type Formative } from "../../utils/Helper";
+import {useEffect, useState} from "react";
+import {Container, Row, Col, Card, Button} from "react-bootstrap";
+import {Link} from "react-router-dom";
+import {dataHelper, type Formative} from "../../utils/Helper";
 import AddNewCard from "../ConceptCards/CardAgregar";
 import "../../css/ConceptCards/CardTecnica.css";
 
@@ -12,7 +12,7 @@ export default function FormativeConcepts() {
     async function fetchConcepts() {
       const realConcepts = await dataHelper.getRealFormativos();
       const mapped = realConcepts.map((dto) => ({
-        conceptId: dto.idConceptoFormativo,
+        conceptId: dto.idFormativo,
         name: dto.nombreFormativo,
         description: dto.descripcionFormativo,
       }));
@@ -28,7 +28,7 @@ export default function FormativeConcepts() {
         Conceptos Formativos
       </h1>
 
-      <div className="border-bottom mb-4" style={{ borderColor: "#d1d1d1" }} />
+      <div className="border-bottom mb-4" style={{borderColor: "#d1d1d1"}} />
 
       <Row className="g-4">
         {concepts.map((concept) => (
@@ -61,7 +61,7 @@ export default function FormativeConcepts() {
                 <div className="mt-auto text-center">
                   <Button
                     as={Link as any}
-                    to={`/concepto/${concept.conceptId}`}
+                    to={`/formative/concepto/${concept.conceptId}`}
                     variant="primary"
                   >
                     Ver más
