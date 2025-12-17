@@ -275,11 +275,14 @@ export const dataHelper = {
   }): Promise<void> {
     try {
       const userId = getCurrentUserId();
+      
       await api.post("/aportes", {
         idUsuario: userId,
-        tipoObjeto: "FORMATIVO",
+        tipoObjeto: "FORMATIVO", // 
         nombrePropuesto: payload.name,
         descripcionPropuesto: payload.description,
+    
+        imagenes: payload.image ? [payload.image] : [] 
       });
     } catch (error) {
       handleAxiosError(error);
@@ -293,12 +296,18 @@ export const dataHelper = {
   ): Promise<void> {
     try {
       const userId = getCurrentUserId();
+      
       await api.post("/aportes", {
         idUsuario: userId,
         tipoObjeto: "TECNICO",
         nombrePropuesto: payload.name,
         descripcionPropuesto: payload.description || "Sin descripción.",
-        idFamilia: familyId,
+        
+        // CORRECCIÓN 1: Usamos el nombre exacto del DTO (idFamiliaPadre)
+        idFamiliaPadre: familyId, 
+
+        // CORRECCIÓN 2: Enviamos la imagen en una lista
+        imagenes: payload.image ? [payload.image] : []
       });
     } catch (error) {
       handleAxiosError(error);

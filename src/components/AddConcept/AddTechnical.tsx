@@ -1,152 +1,182 @@
-import React, { useEffect, useState } from "react";
-import { Container, Form, Button } from "react-bootstrap";
+// src/components/AddConcept/AddTechnical.tsx
+
+import React, { useState, useEffect } from "react";
+import { Form, Button, Card, Spinner, Image } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-import { dataHelper, type Family } from "../../utils/Helper";
-import "../../css/AddConceptForm.css"; // <--- tu CSS nuevo
+import { dataHelper, type FamiliaDTO } from "../../utils/Helper";
+import { routes } from "../../router";
+import { uploadToCloudinary } from "../../utils/cloudinaryHelper"; 
+import "../../css/AddConceptForm.css";
 
 export default function AddTechnical() {
-  const [families, setFamilies] = useState<Family[]>([]);
-  const [familyId, setFamilyId] = useState<string>("");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [image, setImage] = useState("");
+  const [selectedFamilyId, setSelectedFamilyId] = useState<number | "">("");
+  
+  // Estado para cargar las familias en el selector
+  const [families, setFamilies] = useState<FamiliaDTO[]>([]);
+  
+  // Estados para la imagen
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
   const navigate = useNavigate();
 
+  // 1. Cargar las familias al iniciar para llenar el Select
   useEffect(() => {
-    async function fetchFamilies() {
-      const realFamilies = await dataHelper.getRealFamilias();
-
-      // Mapear DTO
-      const mapped = realFamilies.map((f) => ({
-        idFamilies: f.idFamilia,
-        name: f.nombreFamilia,
-        descriptions: f.descripcionFamilia,
-        componentItemn: "",
-        image: "",
-        subConcepto: [],
-      }));
-
-      setFamilies(mapped);
-
-      if (mapped.length > 0) {
-        setFamilyId(String(mapped[0].idFamilies));
-      }
+    async function loadFamilies() {
+      const data = await dataHelper.getRealFamilias();
+      setFamilies(data);
     }
-
-    fetchFamilies();
+    loadFamilies();
   }, []);
+
+  // Manejo de archivo
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const fid = Number(familyId);
 
-    // Validar ID de familia y nombre
-    if (Number.isNaN(fid) || !name.trim()) return;
+    if (!name.trim()) {
+      alert("El nombre es obligatorio.");
+      return;
+    }
+    if (!selectedFamilyId) {
+      alert("Debes seleccionar una familia.");
+      return;
+    }
 
     try {
-      // LLAMADA AL BACKEND a través de dataHelper.addSubConcept
-      // Esto llama a POST /api/v1/conceptos-tecnicos
-      await dataHelper.addSubConcept(fid, {
+      setIsUploading(true);
+      let imageUrl = "";
+
+      // 2. Subir imagen a Cloudinary (si existe)
+      if (selectedFile) {
+        imageUrl = await uploadToCloudinary(selectedFile);
+      }
+
+      // 3. Enviar datos al Helper
+      await dataHelper.addSubConcept(Number(selectedFamilyId), {
         name: name.trim(),
-        description: description.trim() || undefined,
-        image: image.trim() || undefined,
+        description: description.trim() || "",
+        image: imageUrl,
       });
 
-      alert("Subconcepto técnico creado y enviado a revisión.");
-      // Navegación a la página de detalle de la familia después de la creación
-      navigate(`/familia/${fid}`);
+      alert("Concepto técnico propuesto exitosamente.");
+      navigate(routes.TechnicalConceptPage);
+
     } catch (error) {
-      // Manejo de errores de la API o de red
-      console.error("Error al guardar subconcepto:", error);
-      alert(
-        `Error al guardar subconcepto: ${
-          error instanceof Error ? error.message : "Error desconocido"
-        }`
-      );
+      console.error("Error al guardar técnico:", error);
+      alert(`Error: ${error instanceof Error ? error.message : "Desconocido"}`);
+    } finally {
+      setIsUploading(false);
     }
   }
 
   return (
-    <div className="add-form-container text-black">
-      <div className="add-form-card">
-        <h2 className="text-center mb-4">Añadir subconcepto técnico</h2>
+    <div className="add-form-container">
+      <Card className="add-form-card shadow-lg">
+        <Card.Body>
+          <h2 className="text-center mb-4">Añadir concepto técnico</h2>
 
-        {families.length === 0 ? (
-          <div>
-            <p className="text-center">
-              No hay familias técnicas. Crea una familia primero.
-            </p>
-          </div>
-        ) : (
           <Form onSubmit={handleSubmit}>
-            {/* Selección de Familia */}
-            <Form.Group className="mb-3" controlId="family">
-              <Form.Label>Familia</Form.Label>
+            
+            {/* SELECTOR DE FAMILIA */}
+            <Form.Group className="mb-3" controlId="familySelect">
+              <Form.Label>Selecciona la Familia</Form.Label>
               <Form.Select
+                value={selectedFamilyId}
+                onChange={(e) => setSelectedFamilyId(Number(e.target.value))}
+                required
+                disabled={isUploading}
                 className="add-form-input"
-                value={familyId}
-                onChange={(e) => setFamilyId(e.target.value)}
               >
+                <option value="">-- Elige una familia --</option>
                 {families.map((f) => (
-                  <option key={f.idFamilies} value={f.idFamilies}>
-                    {f.name}
+                  <option key={f.idFamilia} value={f.idFamilia}>
+                    {f.nombreFamilia}
                   </option>
                 ))}
               </Form.Select>
             </Form.Group>
 
-            {/* Nombre */}
+            {/* NOMBRE */}
             <Form.Group className="mb-3" controlId="name">
-              <Form.Label>Nombre</Form.Label>
+              <Form.Label>Nombre Técnico</Form.Label>
               <Form.Control
                 type="text"
                 className="add-form-input"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
+                disabled={isUploading}
               />
             </Form.Group>
 
-            {/* Descripción */}
+            {/* DESCRIPCIÓN */}
             <Form.Group className="mb-3" controlId="description">
               <Form.Label>Descripción</Form.Label>
               <Form.Control
                 as="textarea"
-                rows={3}
+                rows={4}
                 className="add-form-input"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
+                disabled={isUploading}
               />
             </Form.Group>
 
-            {/* Imagen opcional */}
-            <Form.Group className="mb-3" controlId="image">
-              <Form.Label>URL de imagen (opcional)</Form.Label>
+            {/* IMAGEN */}
+            <Form.Group className="mb-4" controlId="image">
+              <Form.Label>Imagen de Referencia (Opcional)</Form.Label>
               <Form.Control
-                type="text"
-                className="add-form-input"
-                placeholder="/assets/subconcept.png"
-                value={image}
-                onChange={(e) => setImage(e.target.value)}
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                disabled={isUploading}
               />
+              {previewUrl && (
+                <div className="mt-3 text-center">
+                  <Image 
+                    src={previewUrl} 
+                    thumbnail 
+                    style={{ maxHeight: "200px", objectFit: "cover" }} 
+                  />
+                  <div className="text-muted small mt-1">Vista previa</div>
+                </div>
+              )}
             </Form.Group>
 
-            {/* Botones */}
+            {/* BOTONES */}
             <div className="d-flex gap-2 justify-content-center mt-4">
-              <Button type="submit" className="add-form-btn">
-                Guardar
+              <Button className="add-form-btn" type="submit" disabled={isUploading}>
+                {isUploading ? (
+                  <>
+                    <Spinner as="span" animation="border" size="sm" className="me-2" />
+                    Subiendo...
+                  </>
+                ) : (
+                  "Guardar"
+                )}
               </Button>
-
               <Button
                 className="add-form-btn-secondary"
                 onClick={() => navigate(-1)}
+                disabled={isUploading}
               >
                 Cancelar
               </Button>
             </div>
           </Form>
-        )}
-      </div>
+        </Card.Body>
+      </Card>
     </div>
   );
 }
