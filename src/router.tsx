@@ -21,6 +21,8 @@ import AddChoicePage from "./pages/AddChoicePage";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import AdminLayout from "./components/Admin/AdminLayout";
 import AdminConceptPage from "./pages/admin/AdminConceptPage";
+import SubfamilyDetail from "./components/TechnicalConcepts/SubfamilyDetail";
+import FormativeConceptDetailPage from "./pages/FormativeConceptDetailPage";
 
 export const routes = {
   landing: "/",
@@ -34,7 +36,7 @@ export const routes = {
   conceptDetail: "/concepto/:id",
   familyDetail: "/familia/:id",
   technicalConceptDetailPage: "/technical/concept/:id",
-
+  FormativeConceptDetailPage: "/formative/concepto/:id",
   AddChoice: "/AddChoicePage",
   addFormative: "/add/formative",
   addFamily: "/add/family",
@@ -43,15 +45,16 @@ export const routes = {
   adminDashboardPage: "/admin/dashboard",
   adminLayout: "/admin",
   AdminConcept: "/admin/concepts",
+  SubfamilyDetail: "/subfamilia/:id",
 } as const;
 
 const router = createBrowserRouter([
   // ---------------------------------------------------------------
   // 1. RUTAS PÚBLICAS (no requieren login)
   // ---------------------------------------------------------------
-  { path: routes.landing, element: <LandingPage /> },
-  { path: routes.loginPage, element: <LoginPage /> },
-  { path: routes.registerPage, element: <RegisterPage /> },
+  {path: routes.landing, element: <LandingPage />},
+  {path: routes.loginPage, element: <LoginPage />},
+  {path: routes.registerPage, element: <RegisterPage />},
 
   // ---------------------------------------------------------------
   // 2. RUTAS CON LAYOUT GENERAL (navbar, footer, etc.)
@@ -63,7 +66,7 @@ const router = createBrowserRouter([
       {
         element: <ProtectedRoute allowGuest={true} />,
         children: [
-          { path: routes.conceptPage, element: <ConceptPage /> },
+          {path: routes.conceptPage, element: <ConceptPage />},
           {
             path: routes.FormativeConceptPage,
             element: <FormativeConceptPage />,
@@ -72,15 +75,19 @@ const router = createBrowserRouter([
             path: routes.TechnicalConceptPage,
             element: <TechnicalConceptPage />,
           },
-          { path: routes.conceptDetail, element: <FormativeConceptDetail /> },
-          { path: routes.familyDetail, element: <FamiliyDetailPage /> },
+          {path: routes.conceptDetail, element: <FormativeConceptDetail />},
+          {path: routes.familyDetail, element: <FamiliyDetailPage />},
           {
             path: routes.technicalConceptDetailPage,
             element: <TechnicalConceptDetailPage />,
           },
         ],
       },
-
+      {
+            path: routes.FormativeConceptDetailPage,
+            element: <FormativeConceptDetail />,
+          },
+          {path: routes.SubfamilyDetail, element: <SubfamilyDetail />},
       // 2.2 Rutas SOLO para usuarios logueados (USER + ADMIN)
       {
         element: <ProtectedRoute allowedRoles={["USER", "ADMIN"]} />,

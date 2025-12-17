@@ -8,11 +8,18 @@ export interface FamiliaDTO {
   descripcionFamilia: string;
 }
 
+export interface SubfamiliaDTO {
+  idSubfamilia: number;
+  nombreSubfamilia: string;
+  descripcionSubfamilia: string;
+  familiaId: number;
+}
+
 export interface ConceptoTecnicoDTO {
   idTecnico: number;
   nombreTecnico: string;
-  estado: string;
-  idFamilia: number;
+  descripcion?: string;
+  subfamiliaId: number;
 }
 
 export interface ConceptoFormativoDTO {
@@ -29,12 +36,21 @@ export type Family = {
   descriptions?: string;
   componentItemn?: string;
   image?: string;
+  subFamily?: Subfamily[];
+};
+
+export type Subfamily = {
+  idSubfamilies: number;
+  familyId: number;
+  name: string;
+  descriptions?: string;
+  image?: string;
   subConcepto?: SubConcept[];
 };
 
 export type SubConcept = {
   conceptId: number;
-  familyId: number;
+  subfamilyId: number;
   name: string;
   description?: string;
   image?: string;
@@ -67,7 +83,7 @@ const STORAGE_KEYS = {
 } as const;
 
 const API_BASE_URL = "http://localhost:8090/api/v1";
-export { API_BASE_URL };
+export {API_BASE_URL};
 
 // =========================================================================
 // CONFIGURACIÓN DE AXIOS (Instancia Global)
@@ -97,22 +113,24 @@ api.interceptors.response.use(
   (response) => response.data, // Devuelve directamente la 'data' limpia
   (error) => {
     // Si la respuesta es 401 (Unauthorized) o 403 (Forbidden)
-    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+    if (
+      error.response &&
+      (error.response.status === 401 || error.response.status === 403)
+    ) {
       console.warn("Sesión expirada o inválida. Cerrando sesión...");
-      
+
       // Limpiar credenciales
       localStorage.removeItem("token");
       localStorage.removeItem("currentUser");
-      
+
       // Redirigir al login
       window.location.href = "/loginPage";
     }
-    
+
     // Propagamos el error para que los componentes puedan mostrar alertas específicas si es necesario
     return Promise.reject(error);
   }
 );
-
 
 /* --- Helpers Locales --- */
 function getInitialData<T>(key: string, defaultData: T[]): T[] {
@@ -142,7 +160,9 @@ function getCurrentUserId(): number {
   } catch (e) {
     console.error(e);
   }
-  throw new Error("No se pudo identificar al usuario. Por favor inicia sesión.");
+  throw new Error(
+    "No se pudo identificar al usuario. Por favor inicia sesión."
+  );
 }
 
 /* --- Función Auxiliar para manejar errores de Axios --- */
@@ -165,11 +185,11 @@ const initialFamilies: Family[] = [
     descriptions: "Elemento arquitectónico vertical...",
     componentItemn: "Base, Fuste, Capitel",
     image: "/assets/columna.png",
-    subConcepto: [],
+    subFamily: [],
   },
 ];
 const initialFormatives: Formative[] = [
-  { conceptId: 1, name: "Patrimonio", description: "Conjunto de bienes..." },
+  {conceptId: 1, name: "Patrimonio", description: "Conjunto de bienes..."},
 ];
 
 /* --- Objeto Principal Exportado --- */
@@ -182,9 +202,7 @@ export const dataHelper = {
     return this.getTechnicalFamilies().find((f) => f.idFamilies === id);
   },
   getSubConceptById(fid: number, cid: number) {
-    return this.getFamilyById(fid)?.subConcepto?.find(
-      (s) => s.conceptId === cid
-    );
+    return this.getFamilyById(fid)?.subFamily?.find((s) => s.familyId === cid);
   },
   getFormativeConcepts(): Formative[] {
     return getInitialData(STORAGE_KEYS.FORMATIVES, initialFormatives);
@@ -216,6 +234,43 @@ export const dataHelper = {
     }
   },
 
+  async getRealSubfamilias(): Promise<SubfamiliaDTO[]> {
+    try {
+      return await api.get<any, SubfamiliaDTO[]>("/subfamilias");
+    } catch (error) {
+      console.error("Error fetching subfamilias:", error);
+      return [];
+    }
+  },
+
+  //APLICAR ESTE NUEVO METODO PARA PAGINA DE FAMILIAS
+  async getRealSubfamiliasByFamilia(
+    familiaId: number
+  ): Promise<SubfamiliaDTO[]> {
+    try {
+      return await api.get<any, SubfamiliaDTO[]>(
+        `/subfamilias/familia/${familiaId}`
+      ); //REVISAR ESTE API
+    } catch (error) {
+      console.error("Error fetching subfamilias", error);
+      return [];
+    }
+  },
+
+  //APLICAR NUEVO METODO PARA CONCEPTO TECNICOS POR SUBFAMILIAS
+  async getRealTecnicosBySubfamilia(
+    idSubfamilia: number
+  ): Promise<ConceptoTecnicoDTO[]> {
+    try {
+      return await api.get<any, ConceptoTecnicoDTO[]>(
+        `/conceptos-tecnicos/subfamilia/${idSubfamilia}`
+      );
+    } catch (error) {
+      console.error("Error fetching formativos:", error);
+      return [];
+    }
+  },
+
   async getRealTecnicos(): Promise<ConceptoTecnicoDTO[]> {
     try {
       return await api.get<any, ConceptoTecnicoDTO[]>("/conceptos-tecnicos");
@@ -225,9 +280,22 @@ export const dataHelper = {
     }
   },
 
+  async getRealTechnicalById(conceptId: number) {
+    try {
+      return await api.get<any, ConceptoTecnicoDTO>(
+        `/conceptos-tecnicos/${conceptId}`
+      );
+    } catch (error) {
+      console.error("Error obteniendo concepto técnico por id", error);
+      return null;
+    }
+  },
+
   async getRealFormativos(): Promise<ConceptoFormativoDTO[]> {
     try {
-      return await api.get<any, ConceptoFormativoDTO[]>("/conceptos-formativos");
+      return await api.get<any, ConceptoFormativoDTO[]>(
+        "/conceptos-formativos"
+      );
     } catch (error) {
       console.error("Error fetching formativos:", error);
       return [];
@@ -289,7 +357,7 @@ export const dataHelper = {
   // 3. Proponer Subconcepto Técnico
   async addSubConcept(
     familyId: number,
-    payload: { name: string; description?: string; image?: string }
+    payload: {name: string; description?: string; image?: string}
   ): Promise<void> {
     try {
       const userId = getCurrentUserId();
