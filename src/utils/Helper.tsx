@@ -18,7 +18,7 @@ export interface SubfamiliaDTO {
 export interface ConceptoTecnicoDTO {
   idTecnico: number;
   nombreTecnico: string;
-  descripcion?: string;
+  descripcionTecnico?: string;
   subfamiliaId: number;
 }
 
