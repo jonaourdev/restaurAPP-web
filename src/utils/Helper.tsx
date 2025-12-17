@@ -1,18 +1,20 @@
 // src/utils/Helper.tsx
 import axios from "axios";
+import { uploadToCloudinary } from "./cloudinaryHelper"; // Asegúrate de que este archivo exista en la misma carpeta
 
 // --- INTERFACES DTO ---
 export interface FamiliaDTO {
   idFamilia: number;
   nombreFamilia: string;
   descripcionFamilia: string;
+  imagenes?: string[]; // Campo para la imagen
 }
 
 export interface SubfamiliaDTO {
   idSubfamilia: number;
   nombreSubfamilia: string;
   descripcionSubfamilia: string;
-  familiaId: number;
+  familiaId: number; 
 }
 
 export interface ConceptoTecnicoDTO {
@@ -20,21 +22,21 @@ export interface ConceptoTecnicoDTO {
   nombreTecnico: string;
   descripcionTecnico?: string;
   subfamiliaId: number;
+  urlImagen?: string; 
+  imagenes?: string[];  
 }
 
 export interface ConceptoFormativoDTO {
   idFormativo: number;
   nombreFormativo: string;
   descripcionFormativo: string;
-  urlImagen?: string;
+  imagenes?: string[];
 }
-
-// Tipos de datos para el frontend
+// Tipos de datos para el frontend (Legacy / Compatibilidad)
 export type Family = {
   idFamilies: number;
   name: string;
   descriptions?: string;
-  componentItemn?: string;
   image?: string;
   subFamily?: Subfamily[];
 };
@@ -74,6 +76,7 @@ export type Aporte = {
   estado: "PENDIENTE" | "APROBADO" | "RECHAZADO";
   idAdmin?: number;
   motivoRechazo?: string;
+  urlImagen?: string;
 };
 
 const STORAGE_KEYS = {
@@ -177,13 +180,30 @@ function handleAxiosError(error: any): never {
   throw new Error(message);
 }
 
+/* --- Función Auxiliar para Procesar Imágenes (NUEVA) --- */
+async function processImage(image?: string | File): Promise<string | undefined> {
+  if (!image) return undefined;
+  
+  if (typeof image === "string") {
+    return image; // Ya es una URL
+  } else if (image instanceof File) {
+    try {
+      // Subimos a Cloudinary y devolvemos la URL segura
+      return await uploadToCloudinary(image);
+    } catch (error) {
+      console.error("Error procesando imagen:", error);
+      throw error;
+    }
+  }
+  return undefined;
+}
+
 /* --- Mock Data (Datos Locales de Respaldo) --- */
 const initialFamilies: Family[] = [
   {
     idFamilies: 1,
     name: "Columna",
     descriptions: "Elemento arquitectónico vertical...",
-    componentItemn: "Base, Fuste, Capitel",
     image: "/assets/columna.png",
     subFamily: [],
   },
@@ -217,7 +237,6 @@ export const dataHelper = {
 
   async getAllAportes(): Promise<Aporte[]> {
     try {
-      // api.get ya devuelve la data gracias al interceptor
       return await api.get<any, Aporte[]>("/aportes");
     } catch (error) {
       console.error("Error fetching aportes:", error);
@@ -243,21 +262,21 @@ export const dataHelper = {
     }
   },
 
-  //APLICAR ESTE NUEVO METODO PARA PAGINA DE FAMILIAS
+  // Obtener subfamilias por ID de familia
   async getRealSubfamiliasByFamilia(
     familiaId: number
   ): Promise<SubfamiliaDTO[]> {
     try {
       return await api.get<any, SubfamiliaDTO[]>(
         `/subfamilias/familia/${familiaId}`
-      ); //REVISAR ESTE API
+      );
     } catch (error) {
       console.error("Error fetching subfamilias", error);
       return [];
     }
   },
 
-  //APLICAR NUEVO METODO PARA CONCEPTO TECNICOS POR SUBFAMILIAS
+  // Obtener técnicos por subfamilia
   async getRealTecnicosBySubfamilia(
     idSubfamilia: number
   ): Promise<ConceptoTecnicoDTO[]> {
@@ -312,23 +331,25 @@ export const dataHelper = {
   },
 
   // =======================================================================
-  // ESCRITURA (POST / PUT con AXIOS)
+  // ESCRITURA (POST / PUT con AXIOS) - ACTUALIZADO CON IMÁGENES
   // =======================================================================
 
-  // 1. Proponer Familia
+ // 1. Proponer Familia (ACTUALIZADO)
   async addTechnicalFamily(payload: {
     name: string;
     descriptions?: string;
-    componentItemn?: string;
-    image?: string;
+    images?: string[]; 
   }): Promise<void> {
     try {
       const userId = getCurrentUserId();
+      
       await api.post("/aportes", {
         idUsuario: userId,
         tipoObjeto: "FAMILIA",
         nombrePropuesto: payload.name,
         descripcionPropuesto: payload.descriptions || "Sin descripción.",
+        // Enviamos el array al backend
+        imagenes: payload.images 
       });
     } catch (error) {
       handleAxiosError(error);
@@ -339,7 +360,7 @@ export const dataHelper = {
   async addFormativeConcept(payload: {
     name: string;
     description: string;
-    image?: string;
+    images?: string[]; 
   }): Promise<void> {
     try {
       const userId = getCurrentUserId();
@@ -348,6 +369,7 @@ export const dataHelper = {
         tipoObjeto: "FORMATIVO",
         nombrePropuesto: payload.name,
         descripcionPropuesto: payload.description,
+        imagenes: payload.images
       });
     } catch (error) {
       handleAxiosError(error);
@@ -357,7 +379,11 @@ export const dataHelper = {
   // 3. Proponer Subconcepto Técnico
   async addSubConcept(
     familyId: number,
-    payload: {name: string; description?: string; image?: string}
+    payload: {
+      name: string; 
+      description?: string; 
+      images?: string[]; // Recibe Array de URLs
+    }
   ): Promise<void> {
     try {
       const userId = getCurrentUserId();
@@ -367,6 +393,7 @@ export const dataHelper = {
         nombrePropuesto: payload.name,
         descripcionPropuesto: payload.description || "Sin descripción.",
         idFamilia: familyId,
+        imagenes: payload.images
       });
     } catch (error) {
       handleAxiosError(error);

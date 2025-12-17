@@ -1,122 +1,87 @@
-import {Container, Card} from "react-bootstrap";
-import {useParams, useNavigate, Link} from "react-router-dom";
-import {routes} from "../../router";
-import {dataHelper, type ConceptoFormativoDTO} from "../../utils/Helper";
-import {useEffect, useState} from "react";
+import { Container, Card, Carousel } from "react-bootstrap"; // Importamos Carousel
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { routes } from "../../router";
+import { dataHelper, type ConceptoFormativoDTO } from "../../utils/Helper";
+import { useEffect, useState } from "react";
 
-type RouteParams = {
-  id?: string;
-};
+// Extendemos el DTO localmente por si Helper no está actualizado aún
+interface ConceptoFormativoExtendido extends ConceptoFormativoDTO {
+  imagenes?: string[]; // Nueva propiedad lista de imágenes
+}
 
 export default function FormativeConceptDetail() {
-  const {id} = useParams<RouteParams>();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const [concept, setConcept] = useState<ConceptoFormativoDTO | null>(null);
+  const [concept, setConcept] = useState<ConceptoFormativoExtendido | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const conceptId = Number(id);
-
-    if (!id || Number.isNaN(conceptId)) {
-      setError("Id de concepto inválido.");
-      setLoading(false);
-      return;
-    }
-
-    let isMounted = true;
-
     const fetchConcept = async () => {
       try {
         setLoading(true);
-        const dto = await dataHelper.getRealFormativeId(conceptId);
-
-        if (!isMounted) return;
-
-        if (!dto) {
-          setError("No existe el concepto solicitado.");
-          setConcept(null);
-        } else {
-          setConcept(dto);
+        const dto = await dataHelper.getRealFormativeId(Number(id));
+        
+        if (dto) {
+          // Lógica de compatibilidad: si viene urlImagen, la convertimos en array
+          const imagenes = dto.imagenes || (dto.urlImagen ? [dto.urlImagen] : []);
+          setConcept({ ...dto, imagenes });
           setError(null);
+        } else {
+          setError("No existe el concepto solicitado.");
         }
       } catch (e) {
-        if (!isMounted) return;
-        console.error("Error al cargar concepto técnico:", e);
-        setError("Error al cargar el concepto técnico.");
-        setConcept(null);
+        setError("Error al cargar el concepto.");
       } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     };
-
     fetchConcept();
-
-    return () => {
-      isMounted = false;
-    };
   }, [id]);
 
-  // fallback if id is invalid
-  if (loading) {
-    return (
-      <Container className="detail-container">
-        <div className="detail-card text-center">
-          <p>Cargando concepto formativo...</p>
-        </div>
-      </Container>
-    );
-  }
+  if (loading) return <Container className="py-5 text-center">Cargando...</Container>;
+  if (error || !concept) return <Container className="py-5 text-center text-danger"><h3>{error}</h3></Container>;
 
-  if (error || !concept) {
-    return (
-      <Container className="detail-container">
-        <div className="detail-card text-center">
-          <h2 className="text-danger">Concepto no encontrado</h2>
-          <p>{error ?? "No existe el concepto solicitado."}</p>
-        </div>
-
-        <div className="detail-actions">
-          <button className="btn btn-primary" onClick={() => navigate(-1)}>
-            Volver a los conceptos
-          </button>
-
-          <Link
-            to="/conceptos/formativos"
-            className="btn btn-outline-secondary"
-          >
-            Volver al listado
-          </Link>
-        </div>
-      </Container>
-    );
-  }
+  // Determinar qué imágenes mostrar
+  const imagesToShow = concept.imagenes && concept.imagenes.length > 0 ? concept.imagenes : [];
 
   return (
     <Container className="py-5">
-      <Card className="mx-auto" style={{maxWidth: 800}}>
+      <Card className="mx-auto shadow-sm" style={{ maxWidth: 800 }}>
+        
+        {/* LÓGICA DEL CARRUSEL */}
+        {imagesToShow.length > 0 ? (
+          <Carousel interval={null} className="bg-light">
+            {imagesToShow.map((imgUrl, index) => (
+              <Carousel.Item key={index}>
+                <div style={{ height: "400px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <img
+                    className="d-block"
+                    src={imgUrl}
+                    alt={`Imagen ${index + 1}`}
+                    style={{ maxHeight: "100%", maxWidth: "100%", objectFit: "contain" }}
+                  />
+                </div>
+              </Carousel.Item>
+            ))}
+          </Carousel>
+        ) : (
+          <div className="text-center py-5 bg-light text-muted">
+            Sin imágenes disponibles
+          </div>
+        )}
+
         <Card.Body>
-          <h2>{concept.nombreFormativo}</h2>
-          <p>{concept.descripcionFormativo}</p>
-
-          {/* {concept.image && (
-            <div className="my-3 text-center">
-              <img
-                src={concept.image}
-                alt={concept.name}
-                style={{maxWidth: "100%"}}
-              />
-            </div>
-          )} */}
-
-          <div className="mt-3">
-            <Link
-              to={routes.FormativeConceptPage}
-              className="btn btn-outline-primary"
-            >
+          <Card.Title as="h2" className="mb-3 text-center">
+            {concept.nombreFormativo}
+          </Card.Title>
+          <Card.Text style={{ whiteSpace: "pre-wrap" }}>
+            {concept.descripcionFormativo}
+          </Card.Text>
+          
+          <div className="mt-4 text-center">
+            <Link to={routes.FormativeConceptPage} className="btn btn-outline-primary">
               Volver a conceptos
             </Link>
           </div>
