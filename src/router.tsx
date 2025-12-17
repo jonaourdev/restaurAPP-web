@@ -76,6 +76,10 @@ const router = createBrowserRouter([
             path: routes.technicalConceptDetailPage,
             element: <TechnicalConceptDetailPage />,
           },
+          {
+            path: routes.FormativeConceptDetailPage,
+            element: <FormativeConceptDetail />,
+          },
           {path: routes.SubfamilyDetail, element: <SubfamilyDetail />},
 
           // Rutas para agregar contenido (disponibles para ambos roles)
