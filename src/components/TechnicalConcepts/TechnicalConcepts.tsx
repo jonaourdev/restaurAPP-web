@@ -1,9 +1,9 @@
-import {useEffect, useState} from "react";
-import {Container, Row, Col, Card, Button} from "react-bootstrap";
-import {Link} from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Container, Row, Col, Card, Button } from "react-bootstrap";
+import { Link } from "react-router-dom";
 import AddNewCard from "../ConceptCards/CardAgregar";
 import "../../css/ConceptCards/CardTecnica.css";
-import dataHelper, {type Family} from "../../utils/Helper";
+import dataHelper, { type Family } from "../../utils/Helper";
 
 export default function TechnicalConcepts() {
   const [families, setFamilies] = useState<Family[]>([]);
@@ -47,7 +47,7 @@ export default function TechnicalConcepts() {
         Conceptos Técnicos
       </h1>
 
-      <div className="border-bottom mb-4" style={{borderColor: "#d1d1d1"}} />
+      <div className="border-bottom mb-4" style={{ borderColor: "#d1d1d1" }} />
 
       <Row className="g-4">
         {families.map((family) => (
@@ -66,7 +66,9 @@ export default function TechnicalConcepts() {
               )}
 
               <Card.Body className="d-flex flex-column">
-                <Card.Title className="mb-2">{family.name}</Card.Title>
+                <Card.Title className="mb-2 text-black">
+                  {family.name}
+                </Card.Title>
 
                 <Card.Text className="article-description">
                   {family.descriptions

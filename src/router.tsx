@@ -1,8 +1,8 @@
 // router.tsx (o como se llame tu archivo de rutas)
 
-import {createBrowserRouter, Navigate} from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import Layout from "./components/Layout";
-import {ProtectedRoute} from "./components/ProtectedRoute";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 
 // Imports de tus páginas
 import LandingPage from "./pages/LandingPage";
@@ -15,7 +15,6 @@ import FamiliyDetailPage from "./pages/FamiliyDetailPage";
 import AddFormativePage from "./pages/AddFormativePage";
 import AddFamilyPage from "./pages/AddFamilyPage";
 import AddTechnicalPage from "./pages/AddTechnicalPage";
-import FormativeConceptDetail from "./components/FormativeConcepts/FormativeConceptDetail";
 import TechnicalConceptDetailPage from "./pages/TechnicalConceptDetailPage";
 import AddChoicePage from "./pages/AddChoicePage";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
@@ -23,6 +22,7 @@ import AdminLayout from "./components/Admin/AdminLayout";
 import AdminConceptPage from "./pages/admin/AdminConceptPage";
 import SubfamilyDetail from "./components/TechnicalConcepts/SubfamilyDetail";
 import FormativeConceptDetailPage from "./pages/FormativeConceptDetailPage";
+import AddSubfamilyPage from "./pages/AddSubfamilyPage";
 
 export const routes = {
   landing: "/",
@@ -41,6 +41,7 @@ export const routes = {
   addFormative: "/add/formative",
   addFamily: "/add/family",
   addTechnical: "/add/technical",
+  addSubfamily: "/add/subfamily",
 
   adminDashboardPage: "/admin/dashboard",
   adminLayout: "/admin",
@@ -52,9 +53,9 @@ const router = createBrowserRouter([
   // ---------------------------------------------------------------
   // 1. RUTAS PÚBLICAS (no requieren login)
   // ---------------------------------------------------------------
-  {path: routes.landing, element: <LandingPage />},
-  {path: routes.loginPage, element: <LoginPage />},
-  {path: routes.registerPage, element: <RegisterPage />},
+  { path: routes.landing, element: <LandingPage /> },
+  { path: routes.loginPage, element: <LoginPage /> },
+  { path: routes.registerPage, element: <RegisterPage /> },
 
   // ---------------------------------------------------------------
   // 2. RUTAS CON LAYOUT GENERAL (navbar, footer, etc.)
@@ -66,7 +67,7 @@ const router = createBrowserRouter([
       {
         element: <ProtectedRoute allowGuest={true} />,
         children: [
-          {path: routes.conceptPage, element: <ConceptPage />},
+          { path: routes.conceptPage, element: <ConceptPage /> },
           {
             path: routes.FormativeConceptPage,
             element: <FormativeConceptPage />,
@@ -75,8 +76,8 @@ const router = createBrowserRouter([
             path: routes.TechnicalConceptPage,
             element: <TechnicalConceptPage />,
           },
-          {path: routes.familyDetail, element: <FamiliyDetailPage />},
-          {path: routes.SubfamilyDetail, element: <SubfamilyDetail />},
+          { path: routes.familyDetail, element: <FamiliyDetailPage /> },
+          { path: routes.SubfamilyDetail, element: <SubfamilyDetail /> },
           {
             path: routes.technicalConceptDetailPage,
             element: <TechnicalConceptDetailPage />,
@@ -91,10 +92,11 @@ const router = createBrowserRouter([
       {
         element: <ProtectedRoute allowedRoles={["USER", "ADMIN"]} />,
         children: [
-          {path: routes.AddChoice, element: <AddChoicePage />},
-          {path: routes.addFormative, element: <AddFormativePage />},
-          {path: routes.addFamily, element: <AddFamilyPage />},
-          {path: routes.addTechnical, element: <AddTechnicalPage />},
+          { path: routes.AddChoice, element: <AddChoicePage /> },
+          { path: routes.addFormative, element: <AddFormativePage /> },
+          { path: routes.addFamily, element: <AddFamilyPage /> },
+          { path: routes.addTechnical, element: <AddTechnicalPage /> },
+          { path: routes.addSubfamily, element: <AddSubfamilyPage /> },
         ],
       },
     ],
@@ -115,8 +117,8 @@ const router = createBrowserRouter([
             index: true,
             element: <Navigate to={routes.adminDashboardPage} replace />,
           },
-          {path: routes.adminDashboardPage, element: <AdminDashboardPage />},
-          {path: routes.AdminConcept, element: <AdminConceptPage />},
+          { path: routes.adminDashboardPage, element: <AdminDashboardPage /> },
+          { path: routes.AdminConcept, element: <AdminConceptPage /> },
         ],
       },
     ],

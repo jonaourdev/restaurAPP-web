@@ -1,62 +1,57 @@
 import React, { useEffect, useState } from "react";
-import { Container, Form, Button } from "react-bootstrap";
+import { Form, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-import { dataHelper, type Family } from "../../utils/Helper";
-import "../../css/AddConceptForm.css"; // <--- tu CSS nuevo
+import { dataHelper, type SubfamiliaDTO } from "../../utils/Helper";
+import "../../css/AddConceptForm.css";
 
 export default function AddTechnical() {
-  const [families, setFamilies] = useState<Family[]>([]);
-  const [familyId, setFamilyId] = useState<string>("");
+  const [subfamilias, setSubfamilias] = useState<SubfamiliaDTO[]>([]);
+  const [subfamilyId, setSubfamilyId] = useState<string>("");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [image, setImage] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
-    async function fetchFamilies() {
-      const realFamilies = await dataHelper.getRealFamilias();
+    async function fetchSubfamilias() {
+      const realSubs = await dataHelper.getRealSubfamilias();
 
-      // Mapear DTO
-      const mapped = realFamilies.map((f) => ({
-        idFamilies: f.idFamilia,
-        name: f.nombreFamilia,
-        descriptions: f.descripcionFamilia,
-        componentItemn: "",
-        image: "",
-        subConcepto: [],
-      }));
+      setSubfamilias(realSubs);
 
-      setFamilies(mapped);
-
-      if (mapped.length > 0) {
-        setFamilyId(String(mapped[0].idFamilies));
+      if (realSubs.length > 0) {
+        setSubfamilyId(String(realSubs[0].idSubfamilia));
       }
     }
 
-    fetchFamilies();
+    fetchSubfamilias();
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const fid = Number(familyId);
+    const sid = Number(subfamilyId);
 
-    // Validar ID de familia y nombre
-    if (Number.isNaN(fid) || !name.trim()) return;
+    if (Number.isNaN(sid) || !name.trim()) return;
 
     try {
-      // LLAMADA AL BACKEND a través de dataHelper.addSubConcept
-      // Esto llama a POST /api/v1/conceptos-tecnicos
-      await dataHelper.addSubConcept(fid, {
+      await dataHelper.addSubConcept(sid, {
         name: name.trim(),
         description: description.trim() || undefined,
         image: image.trim() || undefined,
       });
 
-      alert("Subconcepto técnico creado y enviado a revisión.");
-      // Navegación a la página de detalle de la familia después de la creación
-      navigate(`/familia/${fid}`);
+      alert("Concepto técnico creado y enviado a revisión.");
+
+      // Buscar la subfamilia seleccionada para saber su familia
+      const selectedSub = subfamilias.find((s) => s.idSubfamilia === sid);
+
+      if (selectedSub) {
+        // Redirigir al detalle de la familia de esa subfamilia
+        navigate(`/familia/${selectedSub.familiaId}`);
+      } else {
+        // Si por alguna razón no se encuentra, volvemos atrás
+        navigate(-1);
+      }
     } catch (error) {
-      // Manejo de errores de la API o de red
       console.error("Error al guardar subconcepto:", error);
       alert(
         `Error al guardar subconcepto: ${
@@ -69,27 +64,27 @@ export default function AddTechnical() {
   return (
     <div className="add-form-container text-black">
       <div className="add-form-card">
-        <h2 className="text-center mb-4">Añadir subconcepto técnico</h2>
+        <h2 className="text-center mb-4">Añadir concepto técnico</h2>
 
-        {families.length === 0 ? (
+        {subfamilias.length === 0 ? (
           <div>
             <p className="text-center">
-              No hay familias técnicas. Crea una familia primero.
+              No hay subfamilias registradas. Crea una subfamilia primero.
             </p>
           </div>
         ) : (
           <Form onSubmit={handleSubmit}>
-            {/* Selección de Familia */}
-            <Form.Group className="mb-3" controlId="family">
-              <Form.Label>Familia</Form.Label>
+            {/* Selección de Subfamilia */}
+            <Form.Group className="mb-3" controlId="subfamily">
+              <Form.Label>Subfamilia</Form.Label>
               <Form.Select
                 className="add-form-input"
-                value={familyId}
-                onChange={(e) => setFamilyId(e.target.value)}
+                value={subfamilyId}
+                onChange={(e) => setSubfamilyId(e.target.value)}
               >
-                {families.map((f) => (
-                  <option key={f.idFamilies} value={f.idFamilies}>
-                    {f.name}
+                {subfamilias.map((s) => (
+                  <option key={s.idSubfamilia} value={s.idSubfamilia}>
+                    {s.nombreSubfamilia}
                   </option>
                 ))}
               </Form.Select>

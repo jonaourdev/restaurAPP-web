@@ -1,7 +1,7 @@
-import {useEffect, useState} from "react";
-import {useParams, useNavigate, Link} from "react-router-dom";
-import {Container} from "react-bootstrap";
-import {dataHelper, type ConceptoTecnicoDTO} from "../../utils/Helper";
+import { useEffect, useState } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { Container } from "react-bootstrap";
+import { dataHelper, type ConceptoTecnicoDTO } from "../../utils/Helper";
 import "../../css/ConceptCards/TechnicalConceptDetail.css";
 
 type RouteParams = {
@@ -9,7 +9,7 @@ type RouteParams = {
 };
 
 export default function TechnicalConceptDetail() {
-  const {id} = useParams<RouteParams>();
+  const { id } = useParams<RouteParams>();
   const navigate = useNavigate();
 
   const [concept, setConcept] = useState<ConceptoTecnicoDTO | null>(null);
@@ -97,7 +97,7 @@ export default function TechnicalConceptDetail() {
 
   return (
     <Container className="detail-container">
-      <div className="detail-card">
+      <div className="detail-card text-black">
         <h2>{concept.nombreTecnico}</h2>
 
         {concept.descripcionTecnico && (

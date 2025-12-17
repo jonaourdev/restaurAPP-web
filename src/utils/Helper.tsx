@@ -83,7 +83,7 @@ const STORAGE_KEYS = {
 } as const;
 
 const API_BASE_URL = "http://localhost:8090/api/v1";
-export {API_BASE_URL};
+export { API_BASE_URL };
 
 // =========================================================================
 // CONFIGURACIÓN DE AXIOS (Instancia Global)
@@ -189,7 +189,7 @@ const initialFamilies: Family[] = [
   },
 ];
 const initialFormatives: Formative[] = [
-  {conceptId: 1, name: "Patrimonio", description: "Conjunto de bienes..."},
+  { conceptId: 1, name: "Patrimonio", description: "Conjunto de bienes..." },
 ];
 
 /* --- Objeto Principal Exportado --- */
@@ -335,7 +335,26 @@ export const dataHelper = {
     }
   },
 
-  // 2. Proponer Concepto Formativo
+  // 2. Proponer Subfamilia
+  async addSubfamily(
+    familyId: number,
+    payload: { name: string; description?: string; image?: string }
+  ): Promise<void> {
+    try {
+      const userId = getCurrentUserId();
+      await api.post("/aportes", {
+        idUsuario: userId,
+        tipoObjeto: "SUBFAMILIA",
+        nombrePropuesto: payload.name,
+        descripcionPropuesto: payload.description || "Sin descripción.",
+        idFamilia: familyId,
+      });
+    } catch (error) {
+      handleAxiosError(error);
+    }
+  },
+
+  // 3. Proponer Concepto Formativo
   async addFormativeConcept(payload: {
     name: string;
     description: string;
@@ -354,10 +373,10 @@ export const dataHelper = {
     }
   },
 
-  // 3. Proponer Subconcepto Técnico
+  // 4. Proponer Subconcepto Técnico
   async addSubConcept(
-    familyId: number,
-    payload: {name: string; description?: string; image?: string}
+    subfamilyId: number,
+    payload: { name: string; description?: string; image?: string }
   ): Promise<void> {
     try {
       const userId = getCurrentUserId();
@@ -366,7 +385,7 @@ export const dataHelper = {
         tipoObjeto: "TECNICO",
         nombrePropuesto: payload.name,
         descripcionPropuesto: payload.description || "Sin descripción.",
-        idFamilia: familyId,
+        idSubfamilia: subfamilyId,
       });
     } catch (error) {
       handleAxiosError(error);

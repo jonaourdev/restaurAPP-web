@@ -1,12 +1,12 @@
-import {useEffect, useState} from "react";
-import {Container, Card, Row, Col} from "react-bootstrap";
-import {useParams, Link} from "react-router-dom";
-import {dataHelper, type SubConcept} from "../../utils/Helper";
-import {routes} from "../../router";
+import { useEffect, useState } from "react";
+import { Container, Card, Row, Col } from "react-bootstrap";
+import { useParams, Link } from "react-router-dom";
+import { dataHelper, type SubConcept } from "../../utils/Helper";
+import { routes } from "../../router";
 import "../../css/ConceptCards/TechnicalConceptDetail.css";
 
 export default function SubfamilyDetail() {
-  const {id} = useParams<{id?: string}>();
+  const { id } = useParams<{ id?: string }>();
   const subfamilyId = Number(id);
 
   const [concepts, setConcepts] = useState<SubConcept[]>([]);
@@ -29,7 +29,7 @@ export default function SubfamilyDetail() {
         conceptId: t.idTecnico,
         subfamilyId: t.subfamiliaId,
         name: t.nombreTecnico,
-        description: "", // si luego agregas descripción en el backend la mapeas aquí
+        description: t.descripcionTecnico ?? "", // ✅ USAMOS LA DESCRIPCIÓN REAL
         image: "",
       }));
 
@@ -50,7 +50,7 @@ export default function SubfamilyDetail() {
 
   return (
     <Container className="py-4">
-      <h1 className="mb-4">Conceptos técnicos de la subfamilia</h1>
+      <h1 className="mb-4 text-black">Conceptos técnicos de la subfamilia</h1>
 
       {concepts.length === 0 ? (
         <p>No hay conceptos técnicos para esta subfamilia.</p>
@@ -68,7 +68,7 @@ export default function SubfamilyDetail() {
                       {c.name}
                     </Link>
                   </Card.Title>
-                  <Card.Text>
+                  <Card.Text className="text-black">
                     {c.description || "Sin descripción disponible."}
                   </Card.Text>
                 </Card.Body>
@@ -80,7 +80,7 @@ export default function SubfamilyDetail() {
 
       <div className="detail-actions mt-4">
         <Link
-          to={routes.technicalConceptDetailPage}
+          to={routes.TechnicalConceptPage} // 🔧 de paso, mejor volver a familias técnicas
           className="btn btn-primary"
         >
           Volver a familias
