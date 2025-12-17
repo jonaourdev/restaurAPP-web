@@ -1,15 +1,16 @@
-import { useEffect, useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
-import { Container } from "react-bootstrap";
-import { dataHelper, type ConceptoTecnicoDTO } from "../../utils/Helper";
+import {useEffect, useState} from "react";
+import {useParams, useNavigate, Link} from "react-router-dom";
+import {Container} from "react-bootstrap";
+import {dataHelper, type ConceptoTecnicoDTO} from "../../utils/Helper";
 import "../../css/ConceptCards/TechnicalConceptDetail.css";
+import CardAgregar from "../ConceptCards/CardAgregar";
 
 type RouteParams = {
   id?: string;
 };
 
 export default function TechnicalConceptDetail() {
-  const { id } = useParams<RouteParams>();
+  const {id} = useParams<RouteParams>();
   const navigate = useNavigate();
 
   const [concept, setConcept] = useState<ConceptoTecnicoDTO | null>(null);
@@ -108,7 +109,6 @@ export default function TechnicalConceptDetail() {
           <p className="mt-3 text-muted">Sin descripción disponible.</p>
         )}
       </div>
-
       <div className="detail-actions">
         <button className="btn btn-primary" onClick={() => navigate(-1)}>
           Volver a la subfamilia

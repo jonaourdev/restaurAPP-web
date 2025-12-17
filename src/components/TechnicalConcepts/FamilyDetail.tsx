@@ -1,12 +1,13 @@
-import { useEffect, useState } from "react";
-import { Container } from "react-bootstrap";
-import { useParams, Link } from "react-router-dom";
-import { dataHelper, type Family } from "../../utils/Helper";
-import { routes } from "../../router";
+import {useEffect, useState} from "react";
+import {Container} from "react-bootstrap";
+import {useParams, Link} from "react-router-dom";
+import {dataHelper, type Family} from "../../utils/Helper";
+import {routes} from "../../router";
 import "../../css/ConceptCards/TechnicalConceptDetail.css";
+import CardAgregar from "../ConceptCards/CardAgregar";
 
 export default function FamilyDetail() {
-  const { id } = useParams<{ id?: string }>();
+  const {id} = useParams<{id?: string}>();
   const familyId = Number(id);
 
   const [family, setFamily] = useState<Family | undefined>();
@@ -128,7 +129,7 @@ export default function FamilyDetail() {
                     className="detail-card mt-3 text-decoration-none"
                   >
                     <div key={sub.idSubfamilies} className="col-md-6">
-                      <div className="detail-card" style={{ padding: "1rem" }}>
+                      <div className="detail-card" style={{padding: "1rem"}}>
                         <h5 className="mb-2">{sub.name}</h5>
                         <p className="m-0">
                           {sub.descriptions || "Sin descripción."}
@@ -140,6 +141,7 @@ export default function FamilyDetail() {
               </div>
             </div>
           )}
+          <CardAgregar />
         </div>
       </Container>
 

@@ -68,7 +68,7 @@ export type Aporte = {
   idAporte: number;
   idUsuario: number;
   nombreUsuario: string;
-  tipoObjeto: "FAMILIA" | "TECNICO" | "FORMATIVO";
+  tipoObjeto: "FAMILIA" | "TECNICO" | "FORMATIVO" | "SUBFAMILIA";
   nombrePropuesto: string;
   descripcionPropuesto: string;
   estado: "PENDIENTE" | "APROBADO" | "RECHAZADO";
@@ -83,7 +83,7 @@ const STORAGE_KEYS = {
 } as const;
 
 const API_BASE_URL = "http://localhost:8090/api/v1";
-export { API_BASE_URL };
+export {API_BASE_URL};
 
 // =========================================================================
 // CONFIGURACIÓN DE AXIOS (Instancia Global)
@@ -189,7 +189,7 @@ const initialFamilies: Family[] = [
   },
 ];
 const initialFormatives: Formative[] = [
-  { conceptId: 1, name: "Patrimonio", description: "Conjunto de bienes..." },
+  {conceptId: 1, name: "Patrimonio", description: "Conjunto de bienes..."},
 ];
 
 /* --- Objeto Principal Exportado --- */
@@ -338,7 +338,7 @@ export const dataHelper = {
   // 2. Proponer Subfamilia
   async addSubfamily(
     familyId: number,
-    payload: { name: string; description?: string; image?: string }
+    payload: {name: string; description?: string; image?: string}
   ): Promise<void> {
     try {
       const userId = getCurrentUserId();
@@ -376,7 +376,7 @@ export const dataHelper = {
   // 4. Proponer Subconcepto Técnico
   async addSubConcept(
     subfamilyId: number,
-    payload: { name: string; description?: string; image?: string }
+    payload: {name: string; description?: string; image?: string}
   ): Promise<void> {
     try {
       const userId = getCurrentUserId();

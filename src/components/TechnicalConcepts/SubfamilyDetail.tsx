@@ -1,12 +1,13 @@
-import { useEffect, useState } from "react";
-import { Container, Card, Row, Col } from "react-bootstrap";
-import { useParams, Link } from "react-router-dom";
-import { dataHelper, type SubConcept } from "../../utils/Helper";
-import { routes } from "../../router";
+import {useEffect, useState} from "react";
+import {Container, Card, Row, Col} from "react-bootstrap";
+import {useParams, Link} from "react-router-dom";
+import {dataHelper, type SubConcept} from "../../utils/Helper";
+import {routes} from "../../router";
 import "../../css/ConceptCards/TechnicalConceptDetail.css";
+import CardAgregar from "../ConceptCards/CardAgregar";
 
 export default function SubfamilyDetail() {
-  const { id } = useParams<{ id?: string }>();
+  const {id} = useParams<{id?: string}>();
   const subfamilyId = Number(id);
 
   const [concepts, setConcepts] = useState<SubConcept[]>([]);
@@ -53,7 +54,7 @@ export default function SubfamilyDetail() {
       <h1 className="mb-4 text-black">Conceptos técnicos de la subfamilia</h1>
 
       {concepts.length === 0 ? (
-        <p>No hay conceptos técnicos para esta subfamilia.</p>
+        <CardAgregar />
       ) : (
         <Row className="g-3">
           {concepts.map((c) => (
@@ -75,6 +76,7 @@ export default function SubfamilyDetail() {
               </Card>
             </Col>
           ))}
+          <CardAgregar />
         </Row>
       )}
 
