@@ -1,8 +1,8 @@
 // router.tsx (o como se llame tu archivo de rutas)
 
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import {createBrowserRouter, Navigate} from "react-router-dom";
 import Layout from "./components/Layout";
-import { ProtectedRoute } from "./components/ProtectedRoute";
+import {ProtectedRoute} from "./components/ProtectedRoute";
 
 // Imports de tus páginas
 import LandingPage from "./pages/LandingPage";
@@ -75,27 +75,26 @@ const router = createBrowserRouter([
             path: routes.TechnicalConceptPage,
             element: <TechnicalConceptPage />,
           },
-          {path: routes.conceptDetail, element: <FormativeConceptDetail />},
           {path: routes.familyDetail, element: <FamiliyDetailPage />},
+          {path: routes.SubfamilyDetail, element: <SubfamilyDetail />},
           {
             path: routes.technicalConceptDetailPage,
             element: <TechnicalConceptDetailPage />,
           },
+          {
+            path: routes.FormativeConceptDetailPage,
+            element: <FormativeConceptDetailPage />,
+          },
         ],
       },
-      {
-            path: routes.FormativeConceptDetailPage,
-            element: <FormativeConceptDetail />,
-          },
-          {path: routes.SubfamilyDetail, element: <SubfamilyDetail />},
       // 2.2 Rutas SOLO para usuarios logueados (USER + ADMIN)
       {
         element: <ProtectedRoute allowedRoles={["USER", "ADMIN"]} />,
         children: [
-          { path: routes.AddChoice, element: <AddChoicePage /> },
-          { path: routes.addFormative, element: <AddFormativePage /> },
-          { path: routes.addFamily, element: <AddFamilyPage /> },
-          { path: routes.addTechnical, element: <AddTechnicalPage /> },
+          {path: routes.AddChoice, element: <AddChoicePage />},
+          {path: routes.addFormative, element: <AddFormativePage />},
+          {path: routes.addFamily, element: <AddFamilyPage />},
+          {path: routes.addTechnical, element: <AddTechnicalPage />},
         ],
       },
     ],
@@ -116,8 +115,8 @@ const router = createBrowserRouter([
             index: true,
             element: <Navigate to={routes.adminDashboardPage} replace />,
           },
-          { path: routes.adminDashboardPage, element: <AdminDashboardPage /> },
-          { path: routes.AdminConcept, element: <AdminConceptPage /> },
+          {path: routes.adminDashboardPage, element: <AdminDashboardPage />},
+          {path: routes.AdminConcept, element: <AdminConceptPage />},
         ],
       },
     ],

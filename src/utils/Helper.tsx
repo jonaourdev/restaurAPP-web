@@ -23,7 +23,7 @@ export interface ConceptoTecnicoDTO {
 }
 
 export interface ConceptoFormativoDTO {
-  idConceptoFormativo: number;
+  idFormativo: number;
   nombreFormativo: string;
   descripcionFormativo: string;
   urlImagen?: string;
