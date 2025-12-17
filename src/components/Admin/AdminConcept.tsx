@@ -1,6 +1,16 @@
-import { useEffect, useState } from "react";
-import { Container, Card, Table, Button, Badge, Modal, Form, Alert, Spinner } from "react-bootstrap";
-import { dataHelper, type Aporte } from "../../utils/Helper";
+import {useEffect, useState} from "react";
+import {
+  Container,
+  Card,
+  Table,
+  Button,
+  Badge,
+  Modal,
+  Form,
+  Alert,
+  Spinner,
+} from "react-bootstrap";
+import {dataHelper, type Aporte} from "../../utils/Helper";
 
 export default function AdminConcepts() {
   const [pendientes, setPendientes] = useState<Aporte[]>([]);
@@ -12,7 +22,7 @@ export default function AdminConcepts() {
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [selectedAporte, setSelectedAporte] = useState<Aporte | null>(null);
   const [rejectReason, setRejectReason] = useState("");
-  
+
   // Para deshabilitar botones mientras se procesa
   const [processingId, setProcessingId] = useState<number | null>(null);
 
@@ -25,7 +35,7 @@ export default function AdminConcepts() {
     try {
       const allAportes = await dataHelper.getAllAportes();
       // Filtramos solo los que están en estado PENDIENTE
-      const filtered = allAportes.filter(a => a.estado === "PENDIENTE");
+      const filtered = allAportes.filter((a) => a.estado === "PENDIENTE");
       setPendientes(filtered);
     } catch (err) {
       console.error(err);
@@ -37,7 +47,8 @@ export default function AdminConcepts() {
 
   // Manejador para APROBAR
   const handleApprove = async (aporte: Aporte) => {
-    if (!window.confirm(`¿Confirmas APROBAR: "${aporte.nombrePropuesto}"?`)) return;
+    if (!window.confirm(`¿Confirmas APROBAR: "${aporte.nombrePropuesto}"?`))
+      return;
 
     try {
       setProcessingId(aporte.idAporte);
@@ -46,7 +57,11 @@ export default function AdminConcepts() {
       // Recargamos la lista para que desaparezca el item procesado
       loadPendientes();
     } catch (err) {
-      setError(`Error al aprobar: ${err instanceof Error ? err.message : "Desconocido"}`);
+      setError(
+        `Error al aprobar: ${
+          err instanceof Error ? err.message : "Desconocido"
+        }`
+      );
     } finally {
       setProcessingId(null);
       setTimeout(() => setSuccessMsg(""), 4000);
@@ -70,12 +85,20 @@ export default function AdminConcepts() {
 
     try {
       setProcessingId(selectedAporte.idAporte);
-      await dataHelper.reviewAporte(selectedAporte.idAporte, "RECHAZADO", rejectReason);
+      await dataHelper.reviewAporte(
+        selectedAporte.idAporte,
+        "RECHAZADO",
+        rejectReason
+      );
       setSuccessMsg(`Solicitud #${selectedAporte.idAporte} rechazada.`);
       setShowRejectModal(false);
       loadPendientes();
     } catch (err) {
-      setError(`Error al rechazar: ${err instanceof Error ? err.message : "Desconocido"}`);
+      setError(
+        `Error al rechazar: ${
+          err instanceof Error ? err.message : "Desconocido"
+        }`
+      );
     } finally {
       setProcessingId(null);
       setSelectedAporte(null);
@@ -87,13 +110,25 @@ export default function AdminConcepts() {
     <Container fluid className="p-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h1 className="text-warning">Gestión de Conceptos</h1>
-        <Button variant="outline-light" onClick={loadPendientes} title="Refrescar lista">
+        <Button
+          variant="outline-light"
+          onClick={loadPendientes}
+          title="Refrescar lista"
+        >
           <i className="bi bi-arrow-clockwise"></i> Actualizar
         </Button>
       </div>
 
-      {error && <Alert variant="danger" onClose={() => setError("")} dismissible>{error}</Alert>}
-      {successMsg && <Alert variant="success" onClose={() => setSuccessMsg("")} dismissible>{successMsg}</Alert>}
+      {error && (
+        <Alert variant="danger" onClose={() => setError("")} dismissible>
+          {error}
+        </Alert>
+      )}
+      {successMsg && (
+        <Alert variant="success" onClose={() => setSuccessMsg("")} dismissible>
+          {successMsg}
+        </Alert>
+      )}
 
       {loading ? (
         <div className="text-center py-5 text-white">
@@ -105,7 +140,9 @@ export default function AdminConcepts() {
           <Card.Body>
             <i className="bi bi-check2-circle display-1 text-success mb-3"></i>
             <h3>¡Todo listo!</h3>
-            <p className="text-muted">No hay conceptos pendientes de revisión.</p>
+            <p className="text-muted">
+              No hay conceptos pendientes de revisión.
+            </p>
           </Card.Body>
         </Card>
       ) : (
@@ -129,37 +166,50 @@ export default function AdminConcepts() {
             <tbody>
               {pendientes.map((aporte) => (
                 <tr key={aporte.idAporte}>
-                  <td className="ps-4 text-muted">#{aporte.idAporte}</td>
+                  <td className="ps-4 text-light">#{aporte.idAporte}</td>
                   <td>
-                    <div className="fw-bold">{aporte.nombreUsuario || "Usuario"}</div>
-                    <small className="text-muted">ID: {aporte.idUsuario}</small>
+                    <div className="fw-bold">
+                      {aporte.nombreUsuario || "Usuario"}
+                    </div>
+                    <small className="text-light">ID: {aporte.idUsuario}</small>
                   </td>
                   <td>
-                    <Badge bg={
-                      aporte.tipoObjeto === "FAMILIA" ? "primary" :
-                      aporte.tipoObjeto === "TECNICO" ? "info" : "warning"
-                    } text="dark">
+                    <Badge
+                      bg={
+                        aporte.tipoObjeto === "FAMILIA"
+                          ? "primary"
+                          : aporte.tipoObjeto === "TECNICO"
+                          ? "info"
+                          : "warning"
+                      }
+                      text="dark"
+                    >
                       {aporte.tipoObjeto}
                     </Badge>
                   </td>
-                  <td style={{ maxWidth: "300px" }}>
-                    <div className="fw-bold text-white">{aporte.nombrePropuesto}</div>
-                    <div className="text-muted text-truncate small" title={aporte.descripcionPropuesto}>
+                  <td style={{maxWidth: "300px"}}>
+                    <div className="fw-bold text-white">
+                      {aporte.nombrePropuesto}
+                    </div>
+                    <div
+                      className="text-light text-truncate small"
+                      title={aporte.descripcionPropuesto}
+                    >
                       {aporte.descripcionPropuesto}
                     </div>
                   </td>
                   <td className="text-end pe-4">
                     <div className="d-flex justify-content-end gap-2">
-                      <Button 
-                        variant="success" 
+                      <Button
+                        variant="success"
                         size="sm"
                         onClick={() => handleApprove(aporte)}
                         disabled={processingId === aporte.idAporte}
                       >
                         <i className="bi bi-check-lg"></i> Aprobar
                       </Button>
-                      <Button 
-                        variant="danger" 
+                      <Button
+                        variant="danger"
                         size="sm"
                         onClick={() => openRejectModal(aporte)}
                         disabled={processingId === aporte.idAporte}
@@ -176,17 +226,28 @@ export default function AdminConcepts() {
       )}
 
       {/* Modal para escribir el motivo de rechazo */}
-      <Modal show={showRejectModal} onHide={() => setShowRejectModal(false)} centered contentClassName="bg-dark text-white border-secondary">
-        <Modal.Header closeButton closeVariant="white" className="border-secondary">
+      <Modal
+        show={showRejectModal}
+        onHide={() => setShowRejectModal(false)}
+        centered
+        contentClassName="bg-dark text-white border-secondary"
+      >
+        <Modal.Header
+          closeButton
+          closeVariant="white"
+          className="border-secondary"
+        >
           <Modal.Title className="text-danger">Rechazar Solicitud</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <p>Vas a rechazar: <strong>{selectedAporte?.nombrePropuesto}</strong></p>
+          <p>
+            Vas a rechazar: <strong>{selectedAporte?.nombrePropuesto}</strong>
+          </p>
           <Form.Group>
             <Form.Label>Motivo (Requerido):</Form.Label>
-            <Form.Control 
-              as="textarea" 
-              rows={3} 
+            <Form.Control
+              as="textarea"
+              rows={3}
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
               placeholder="Indica la razón..."
@@ -198,7 +259,11 @@ export default function AdminConcepts() {
           <Button variant="secondary" onClick={() => setShowRejectModal(false)}>
             Cancelar
           </Button>
-          <Button variant="danger" onClick={handleRejectConfirm} disabled={!rejectReason.trim()}>
+          <Button
+            variant="danger"
+            onClick={handleRejectConfirm}
+            disabled={!rejectReason.trim()}
+          >
             Confirmar Rechazo
           </Button>
         </Modal.Footer>

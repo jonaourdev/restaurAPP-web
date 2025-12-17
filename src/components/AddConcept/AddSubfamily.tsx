@@ -1,60 +1,61 @@
 import React, { useEffect, useState } from "react";
 import { Form, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-import { dataHelper, type SubfamiliaDTO } from "../../utils/Helper";
+import { dataHelper, type FamiliaDTO } from "../../utils/Helper";
 import "../../css/AddConceptForm.css";
 
-export default function AddTechnical() {
-  const [subfamilias, setSubfamilias] = useState<SubfamiliaDTO[]>([]);
-  const [subfamilyId, setSubfamilyId] = useState<string>("");
+export default function AddSubfamily() {
+  const [families, setFamilies] = useState<FamiliaDTO[]>([]);
+  const [familyId, setFamilyId] = useState<string>("");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [image, setImage] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
-    async function fetchSubfamilias() {
-      const realSubs = await dataHelper.getRealSubfamilias();
+    async function fetchFamilies() {
+      const realFamilies = await dataHelper.getRealFamilias();
 
-      setSubfamilias(realSubs);
+      setFamilies(realFamilies);
 
-      if (realSubs.length > 0) {
-        setSubfamilyId(String(realSubs[0].idSubfamilia));
+      if (realFamilies.length > 0) {
+        setFamilyId(String(realFamilies[0].idFamilia));
       }
     }
 
-    fetchSubfamilias();
+    fetchFamilies();
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const sid = Number(subfamilyId);
 
-    if (Number.isNaN(sid) || !name.trim()) return;
+    const fid = Number(familyId);
+
+    if (Number.isNaN(fid)) {
+      alert("Debes seleccionar una familia.");
+      return;
+    }
+
+    if (!name.trim()) {
+      alert("El nombre de la subfamilia es obligatorio.");
+      return;
+    }
 
     try {
-      await dataHelper.addSubConcept(sid, {
+      await dataHelper.addSubfamily(fid, {
         name: name.trim(),
         description: description.trim() || undefined,
         image: image.trim() || undefined,
       });
 
-      alert("Concepto técnico creado y enviado a revisión.");
+      alert("Subfamilia creada y enviada a revisión.");
 
-      // Buscar la subfamilia seleccionada para saber su familia
-      const selectedSub = subfamilias.find((s) => s.idSubfamilia === sid);
-
-      if (selectedSub) {
-        // Redirigir al detalle de la familia de esa subfamilia
-        navigate(`/familia/${selectedSub.familiaId}`);
-      } else {
-        // Si por alguna razón no se encuentra, volvemos atrás
-        navigate(-1);
-      }
+      // Redirigir al detalle de la familia
+      navigate(`/familia/${fid}`);
     } catch (error) {
-      console.error("Error al guardar subconcepto:", error);
+      console.error("Error al guardar subfamilia:", error);
       alert(
-        `Error al guardar subconcepto: ${
+        `Error al guardar subfamilia: ${
           error instanceof Error ? error.message : "Error desconocido"
         }`
       );
@@ -64,35 +65,33 @@ export default function AddTechnical() {
   return (
     <div className="add-form-container text-black">
       <div className="add-form-card">
-        <h2 className="text-center mb-4">Añadir concepto técnico</h2>
+        <h2 className="text-center mb-4">Añadir subfamilia técnica</h2>
 
-        {subfamilias.length === 0 ? (
-          <div>
-            <p className="text-center">
-              No hay subfamilias registradas. Crea una subfamilia primero.
-            </p>
-          </div>
+        {families.length === 0 ? (
+          <p className="text-center">
+            No hay familias técnicas disponibles. Crea una familia primero.
+          </p>
         ) : (
           <Form onSubmit={handleSubmit}>
-            {/* Selección de Subfamilia */}
-            <Form.Group className="mb-3" controlId="subfamily">
-              <Form.Label>Subfamilia</Form.Label>
+            {/* Selección de Familia */}
+            <Form.Group className="mb-3" controlId="family">
+              <Form.Label>Familia</Form.Label>
               <Form.Select
                 className="add-form-input"
-                value={subfamilyId}
-                onChange={(e) => setSubfamilyId(e.target.value)}
+                value={familyId}
+                onChange={(e) => setFamilyId(e.target.value)}
               >
-                {subfamilias.map((s) => (
-                  <option key={s.idSubfamilia} value={s.idSubfamilia}>
-                    {s.nombreSubfamilia}
+                {families.map((f) => (
+                  <option key={f.idFamilia} value={f.idFamilia}>
+                    {f.nombreFamilia}
                   </option>
                 ))}
               </Form.Select>
             </Form.Group>
 
-            {/* Nombre */}
+            {/* Nombre subfamilia */}
             <Form.Group className="mb-3" controlId="name">
-              <Form.Label>Nombre</Form.Label>
+              <Form.Label>Nombre de la subfamilia</Form.Label>
               <Form.Control
                 type="text"
                 className="add-form-input"
@@ -120,7 +119,7 @@ export default function AddTechnical() {
               <Form.Control
                 type="text"
                 className="add-form-input"
-                placeholder="/assets/subconcept.png"
+                placeholder="/assets/subfamilia.png"
                 value={image}
                 onChange={(e) => setImage(e.target.value)}
               />
@@ -133,6 +132,7 @@ export default function AddTechnical() {
               </Button>
 
               <Button
+                type="button"
                 className="add-form-btn-secondary"
                 onClick={() => navigate(-1)}
               >

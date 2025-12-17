@@ -1,4 +1,5 @@
 // src/utils/Helper.tsx
+import axios from "axios";
 
 // --- INTERFACES DTO ---
 export interface FamiliaDTO {
@@ -7,15 +8,22 @@ export interface FamiliaDTO {
   descripcionFamilia: string;
 }
 
+export interface SubfamiliaDTO {
+  idSubfamilia: number;
+  nombreSubfamilia: string;
+  descripcionSubfamilia: string;
+  familiaId: number;
+}
+
 export interface ConceptoTecnicoDTO {
   idTecnico: number;
   nombreTecnico: string;
-  estado: string;
-  idFamilia: number; //AGREGADO RECIEN TESTEAR
+  descripcionTecnico?: string;
+  subfamiliaId: number;
 }
 
 export interface ConceptoFormativoDTO {
-  idConceptoFormativo: number;
+  idFormativo: number;
   nombreFormativo: string;
   descripcionFormativo: string;
   urlImagen?: string;
@@ -28,12 +36,21 @@ export type Family = {
   descriptions?: string;
   componentItemn?: string;
   image?: string;
+  subFamily?: Subfamily[];
+};
+
+export type Subfamily = {
+  idSubfamilies: number;
+  familyId: number;
+  name: string;
+  descriptions?: string;
+  image?: string;
   subConcepto?: SubConcept[];
 };
 
 export type SubConcept = {
   conceptId: number;
-  familyId: number;
+  subfamilyId: number;
   name: string;
   description?: string;
   image?: string;
@@ -43,6 +60,7 @@ export type Formative = {
   conceptId: number;
   name: string;
   description: string;
+  image?: string;
 };
 
 // Interfaz para los Aportes
@@ -50,7 +68,7 @@ export type Aporte = {
   idAporte: number;
   idUsuario: number;
   nombreUsuario: string;
-  tipoObjeto: "FAMILIA" | "TECNICO" | "FORMATIVO";
+  tipoObjeto: "FAMILIA" | "TECNICO" | "FORMATIVO" | "SUBFAMILIA";
   nombrePropuesto: string;
   descripcionPropuesto: string;
   estado: "PENDIENTE" | "APROBADO" | "RECHAZADO";
@@ -67,7 +85,54 @@ const STORAGE_KEYS = {
 const API_BASE_URL = "http://localhost:8090/api/v1";
 export {API_BASE_URL};
 
-/* --- Helpers --- */
+// =========================================================================
+// CONFIGURACIÓN DE AXIOS (Instancia Global)
+// =========================================================================
+
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+// 1. INTERCEPTOR DE REQUEST: Inyecta el Token automáticamente
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// 2. INTERCEPTOR DE RESPONSE: Maneja errores globales (Expiración)
+api.interceptors.response.use(
+  (response) => response.data, // Devuelve directamente la 'data' limpia
+  (error) => {
+    // Si la respuesta es 401 (Unauthorized) o 403 (Forbidden)
+    if (
+      error.response &&
+      (error.response.status === 401 || error.response.status === 403)
+    ) {
+      console.warn("Sesión expirada o inválida. Cerrando sesión...");
+
+      // Limpiar credenciales
+      localStorage.removeItem("token");
+      localStorage.removeItem("currentUser");
+
+      // Redirigir al login
+      window.location.href = "/loginPage";
+    }
+
+    // Propagamos el error para que los componentes puedan mostrar alertas específicas si es necesario
+    return Promise.reject(error);
+  }
+);
+
+/* --- Helpers Locales --- */
 function getInitialData<T>(key: string, defaultData: T[]): T[] {
   try {
     const stored = localStorage.getItem(key);
@@ -100,43 +165,36 @@ function getCurrentUserId(): number {
   );
 }
 
-/* --- API --- */
-async function postToApi<T>(endpoint: string, payload: T): Promise<void> {
-  const url = `${API_BASE_URL}/${endpoint}`;
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify(payload),
-  });
-
-  if (!response.ok) {
-    let errorMsg = `Error ${response.status}`;
-    try {
-      const data = await response.json();
-      errorMsg = data.message || JSON.stringify(data);
-    } catch {}
-    throw new Error(errorMsg);
+/* --- Función Auxiliar para manejar errores de Axios --- */
+function handleAxiosError(error: any): never {
+  let message = "Error desconocido de red";
+  if (axios.isAxiosError(error)) {
+    // Intentamos leer el mensaje que manda el backend
+    message = error.response?.data?.message || error.message;
+  } else if (error instanceof Error) {
+    message = error.message;
   }
+  throw new Error(message);
 }
 
-/* --- Mock Data --- */
+/* --- Mock Data (Datos Locales de Respaldo) --- */
 const initialFamilies: Family[] = [
   {
     idFamilies: 1,
     name: "Columna",
-    descriptions: "...",
-    componentItemn: "...",
+    descriptions: "Elemento arquitectónico vertical...",
+    componentItemn: "Base, Fuste, Capitel",
     image: "/assets/columna.png",
-    subConcepto: [],
+    subFamily: [],
   },
 ];
 const initialFormatives: Formative[] = [
-  {conceptId: 1, name: "Patrimonio", description: "..."},
+  {conceptId: 1, name: "Patrimonio", description: "Conjunto de bienes..."},
 ];
 
-/* --- Helper Exportado --- */
+/* --- Objeto Principal Exportado --- */
 export const dataHelper = {
-  // LECTURA LOCAL
+  // LECTURA LOCAL (Legacy)
   getTechnicalFamilies(): Family[] {
     return getInitialData(STORAGE_KEYS.FAMILIES, initialFamilies);
   },
@@ -144,9 +202,7 @@ export const dataHelper = {
     return this.getTechnicalFamilies().find((f) => f.idFamilies === id);
   },
   getSubConceptById(fid: number, cid: number) {
-    return this.getFamilyById(fid)?.subConcepto?.find(
-      (s) => s.conceptId === cid
-    );
+    return this.getFamilyById(fid)?.subFamily?.find((s) => s.familyId === cid);
   },
   getFormativeConcepts(): Formative[] {
     return getInitialData(STORAGE_KEYS.FORMATIVES, initialFormatives);
@@ -155,99 +211,185 @@ export const dataHelper = {
     return this.getFormativeConcepts().find((c) => c.conceptId === id);
   },
 
-  // LECTURA REAL (Dashboard)
+  // =======================================================================
+  // LECTURA REAL (Con AXIOS)
+  // =======================================================================
+
   async getAllAportes(): Promise<Aporte[]> {
     try {
-      const res = await fetch(`${API_BASE_URL}/aportes`);
-      return res.ok ? await res.json() : [];
-    } catch {
+      // api.get ya devuelve la data gracias al interceptor
+      return await api.get<any, Aporte[]>("/aportes");
+    } catch (error) {
+      console.error("Error fetching aportes:", error);
       return [];
     }
   },
+
   async getRealFamilias(): Promise<FamiliaDTO[]> {
     try {
-      const res = await fetch(`${API_BASE_URL}/familias`);
-      return res.ok ? await res.json() : [];
-    } catch {
+      return await api.get<any, FamiliaDTO[]>("/familias");
+    } catch (error) {
+      console.error("Error fetching familias:", error);
       return [];
     }
   },
+
+  async getRealSubfamilias(): Promise<SubfamiliaDTO[]> {
+    try {
+      return await api.get<any, SubfamiliaDTO[]>("/subfamilias");
+    } catch (error) {
+      console.error("Error fetching subfamilias:", error);
+      return [];
+    }
+  },
+
+  //APLICAR ESTE NUEVO METODO PARA PAGINA DE FAMILIAS
+  async getRealSubfamiliasByFamilia(
+    familiaId: number
+  ): Promise<SubfamiliaDTO[]> {
+    try {
+      return await api.get<any, SubfamiliaDTO[]>(
+        `/subfamilias/familia/${familiaId}`
+      ); //REVISAR ESTE API
+    } catch (error) {
+      console.error("Error fetching subfamilias", error);
+      return [];
+    }
+  },
+
+  //APLICAR NUEVO METODO PARA CONCEPTO TECNICOS POR SUBFAMILIAS
+  async getRealTecnicosBySubfamilia(
+    idSubfamilia: number
+  ): Promise<ConceptoTecnicoDTO[]> {
+    try {
+      return await api.get<any, ConceptoTecnicoDTO[]>(
+        `/conceptos-tecnicos/subfamilia/${idSubfamilia}`
+      );
+    } catch (error) {
+      console.error("Error fetching formativos:", error);
+      return [];
+    }
+  },
+
   async getRealTecnicos(): Promise<ConceptoTecnicoDTO[]> {
     try {
-      const res = await fetch(`${API_BASE_URL}/conceptos-tecnicos`);
-      return res.ok ? await res.json() : [];
-    } catch {
-      return [];
-    }
-  },
-  async getRealFormativos(): Promise<ConceptoFormativoDTO[]> {
-    try {
-      const res = await fetch(`${API_BASE_URL}/conceptos-formativos`);
-      return res.ok ? await res.json() : [];
-    } catch {
+      return await api.get<any, ConceptoTecnicoDTO[]>("/conceptos-tecnicos");
+    } catch (error) {
+      console.error("Error fetching tecnicos:", error);
       return [];
     }
   },
 
-  //LECTURA REAL (CONCEPTOS EN DETALLE)
-
-  async getRealFormativeId(id: number) {
+  async getRealTechnicalById(conceptId: number) {
     try {
-      const res = await fetch(`${API_BASE_URL}/conceptos-formativos/${id}`);
-      if (!res.ok) return null;
-
-      return await res.json();
-    } catch {
+      return await api.get<any, ConceptoTecnicoDTO>(
+        `/conceptos-tecnicos/${conceptId}`
+      );
+    } catch (error) {
+      console.error("Error obteniendo concepto técnico por id", error);
       return null;
     }
   },
 
-  // --- ESCRITURA (AHORA APUNTA A "APORTES" PARA REVISIÓN) ---
+  async getRealFormativos(): Promise<ConceptoFormativoDTO[]> {
+    try {
+      return await api.get<any, ConceptoFormativoDTO[]>(
+        "/conceptos-formativos"
+      );
+    } catch (error) {
+      console.error("Error fetching formativos:", error);
+      return [];
+    }
+  },
+
+  async getRealFormativeId(id: number) {
+    try {
+      return await api.get<any, any>(`/conceptos-formativos/${id}`);
+    } catch (error) {
+      console.error("Error fetching formative detail:", error);
+      return null;
+    }
+  },
+
+  // =======================================================================
+  // ESCRITURA (POST / PUT con AXIOS)
+  // =======================================================================
 
   // 1. Proponer Familia
   async addTechnicalFamily(payload: {
     name: string;
     descriptions?: string;
+    componentItemn?: string;
+    image?: string;
   }): Promise<void> {
-    const userId = getCurrentUserId();
-    // Enviamos a /aportes en lugar de /familias
-    await postToApi("aportes", {
-      idUsuario: userId,
-      tipoObjeto: "FAMILIA",
-      nombrePropuesto: payload.name,
-      descripcionPropuesto: payload.descriptions || "Sin descripción.",
-    });
+    try {
+      const userId = getCurrentUserId();
+      await api.post("/aportes", {
+        idUsuario: userId,
+        tipoObjeto: "FAMILIA",
+        nombrePropuesto: payload.name,
+        descripcionPropuesto: payload.descriptions || "Sin descripción.",
+      });
+    } catch (error) {
+      handleAxiosError(error);
+    }
   },
 
-  // 2. Proponer Concepto Formativo (SOLUCIÓN A TU PROBLEMA)
+  // 2. Proponer Subfamilia
+  async addSubfamily(
+    familyId: number,
+    payload: {name: string; description?: string; image?: string}
+  ): Promise<void> {
+    try {
+      const userId = getCurrentUserId();
+      await api.post("/aportes", {
+        idUsuario: userId,
+        tipoObjeto: "SUBFAMILIA",
+        nombrePropuesto: payload.name,
+        descripcionPropuesto: payload.description || "Sin descripción.",
+        idFamilia: familyId,
+      });
+    } catch (error) {
+      handleAxiosError(error);
+    }
+  },
+
+  // 3. Proponer Concepto Formativo
   async addFormativeConcept(payload: {
     name: string;
     description: string;
+    image?: string;
   }): Promise<void> {
-    const userId = getCurrentUserId();
-    // Enviamos a /aportes
-    await postToApi("aportes", {
-      idUsuario: userId,
-      tipoObjeto: "FORMATIVO",
-      nombrePropuesto: payload.name,
-      descripcionPropuesto: payload.description,
-    });
+    try {
+      const userId = getCurrentUserId();
+      await api.post("/aportes", {
+        idUsuario: userId,
+        tipoObjeto: "FORMATIVO",
+        nombrePropuesto: payload.name,
+        descripcionPropuesto: payload.description,
+      });
+    } catch (error) {
+      handleAxiosError(error);
+    }
   },
 
-  // 3. Proponer Subconcepto Técnico
+  // 4. Proponer Subconcepto Técnico
   async addSubConcept(
-    familyId: number,
-    payload: {name: string; description?: string}
+    subfamilyId: number,
+    payload: {name: string; description?: string; image?: string}
   ): Promise<void> {
-    const userId = getCurrentUserId();
-    // Enviamos a /aportes
-    await postToApi("aportes", {
-      idUsuario: userId,
-      tipoObjeto: "TECNICO",
-      nombrePropuesto: payload.name,
-      descripcionPropuesto: payload.description || "Sin descripción.",
-      idFamilia: familyId, // Enviamos la referencia a la familia
-    });
+    try {
+      const userId = getCurrentUserId();
+      await api.post("/aportes", {
+        idUsuario: userId,
+        tipoObjeto: "TECNICO",
+        nombrePropuesto: payload.name,
+        descripcionPropuesto: payload.description || "Sin descripción.",
+        idSubfamilia: subfamilyId,
+      });
+    } catch (error) {
+      handleAxiosError(error);
+    }
   },
 
   // --- REVISIÓN (ADMIN) ---
@@ -256,33 +398,19 @@ export const dataHelper = {
     estado: "APROBADO" | "RECHAZADO",
     motivo: string = ""
   ): Promise<void> {
-    const adminId = getCurrentUserId(); // ID del admin logueado
-
-    const payload = {
-      idAdmin: adminId,
-      estado: estado,
-      motivoRechazo: motivo,
-    };
-
-    // Asumiendo ruta: /api/v1/aportes/{id}/revision (Ajusta si es diferente en tu backend)
-    const url = `${API_BASE_URL}/aportes/${idAporte}/revision`;
-
-    const response = await fetch(url, {
-      method: "PUT",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      let errorMsg = "Error al procesar la revisión.";
-      try {
-        const data = await response.json();
-        errorMsg = data.message || JSON.stringify(data);
-      } catch {}
-      throw new Error(errorMsg);
+    try {
+      const adminId = getCurrentUserId();
+      await api.put(`/aportes/${idAporte}/revision`, {
+        idAdmin: adminId,
+        estado: estado,
+        motivoRechazo: motivo,
+      });
+    } catch (error) {
+      handleAxiosError(error);
     }
   },
 
+  // Utilidades de limpieza
   resetToInitial() {
     saveToStorage(STORAGE_KEYS.FAMILIES, initialFamilies);
     saveToStorage(STORAGE_KEYS.FORMATIVES, initialFormatives);

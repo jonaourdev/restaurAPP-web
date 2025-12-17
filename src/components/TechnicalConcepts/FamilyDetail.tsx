@@ -1,16 +1,16 @@
-import { useEffect, useState } from "react";
-import { Container } from "react-bootstrap";
-import { useParams, Link } from "react-router-dom";
-import { dataHelper, type Family } from "../../utils/Helper";
-import { routes } from "../../router";
+import {useEffect, useState} from "react";
+import {Container} from "react-bootstrap";
+import {useParams, Link} from "react-router-dom";
+import {dataHelper, type Family} from "../../utils/Helper";
+import {routes} from "../../router";
 import "../../css/ConceptCards/TechnicalConceptDetail.css";
+import CardAgregar from "../ConceptCards/CardAgregar";
 
 export default function FamilyDetail() {
   const {id} = useParams<{id?: string}>();
   const familyId = Number(id);
 
   const [family, setFamily] = useState<Family | undefined>();
-  const [concepts, setConcepts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -37,23 +37,27 @@ export default function FamilyDetail() {
         descriptions: fam.descripcionFamilia,
         componentItemn: "",
         image: "",
-        subConcepto: [],
+        subFamily: [],
       };
 
       //Cargar conceptos tecnicos asociado a la familia
-      const realTecnicos = await dataHelper.getRealTecnicos();
-      const filteredTecnicos = realTecnicos.filter(
-        (t) => t.idFamilia === familyId
+      const realSubfamilies = await dataHelper.getRealSubfamiliasByFamilia(
+        familyId
+      );
+      const filteredSubfamilies = realSubfamilies.filter(
+        (t) => t.familiaId === familyId
       );
 
       //Mapear los tecnico a subConcepto
 
-      mappedFamily.subConcepto = filteredTecnicos.map((t) => ({
-        conceptId: t.idTecnico,
+      mappedFamily.subFamily = filteredSubfamilies.map((t) => ({
+        idSubfamilies: t.idSubfamilia,
         familyId: familyId,
-        name: t.nombreTecnico,
+        name: t.nombreSubfamilia,
+        descriptions: t.descripcionSubfamilia,
+        image: "",
+        subConcepto: [],
       }));
-
       setFamily(mappedFamily);
       setLoading(false);
     }
@@ -110,34 +114,34 @@ export default function FamilyDetail() {
             <p className="mt-2">
               {family.descriptions || "Sin descripción disponible."}
             </p>
-
-            <br />
-
-            <strong>Componentes:</strong>
-            <p className="mt-2">
-              {family.componentItemn || "Sin componentes definidos."}
-            </p>
           </div>
 
-          {/* SUBCONCEPTOS */}
-          {family.subConcepto && family.subConcepto.length > 0 && (
+          {/* SUBFAMILIAS */}
+          {family.subFamily && family.subFamily.length > 0 && (
             <div className="mt-4 text-black">
-              <h3>Subconceptos</h3>
+              <h3>Subfamilias</h3>
 
               <div className="row g-3 mt-1">
-                {family.subConcepto.map((sub) => (
-                  <div key={sub.conceptId} className="col-md-6">
-                    <div className="detail-card" style={{ padding: "1rem" }}>
-                      <h5 className="mb-2">{sub.name}</h5>
-                      <p className="m-0">
-                        {sub.description || "Sin descripción."}
-                      </p>
+                {family.subFamily.map((sub) => (
+                  <Link
+                    key={sub.idSubfamilies}
+                    to={`/subfamilia/${sub.idSubfamilies}`}
+                    className="detail-card mt-3 text-decoration-none"
+                  >
+                    <div key={sub.idSubfamilies} className="col-md-6">
+                      <div className="detail-card" style={{padding: "1rem"}}>
+                        <h5 className="mb-2">{sub.name}</h5>
+                        <p className="m-0">
+                          {sub.descriptions || "Sin descripción."}
+                        </p>
+                      </div>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </div>
           )}
+          <CardAgregar />
         </div>
       </Container>
 
